@@ -1,3 +1,5 @@
+:orphan:
+
 .. _ipu:
 
 Accelerator: IPU training

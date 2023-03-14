@@ -11,7 +11,10 @@ Lightning-Graphcore documentation
    :caption: Start here
 
    readme
-   ipu
+   prepare
+   basic
+   intermediate
+   advanced
 
 
 Indices and tables
