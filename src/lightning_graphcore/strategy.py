@@ -15,26 +15,28 @@ import json
 import os
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
+import pytorch_lightning as pl
 import torch
+from lightning_fabric.plugins import CheckpointIO, ClusterEnvironment
+from lightning_fabric.utilities.cloud_io import get_filesystem
 from lightning_utilities.core.apply_func import apply_to_collection
+from pytorch_lightning import Trainer
+from pytorch_lightning.accelerators import Accelerator
+from pytorch_lightning.overrides.base import _LightningModuleWrapperBase
+from pytorch_lightning.plugins.precision import PrecisionPlugin
+from pytorch_lightning.strategies.parallel import ParallelStrategy
+from pytorch_lightning.strategies.strategy import TBroadcast
+from pytorch_lightning.strategies.utils import _fp_to_half
+from pytorch_lightning.trainer.states import RunningStage, TrainerFn
+from pytorch_lightning.utilities import rank_zero_warn
+from pytorch_lightning.utilities.data import _get_dataloader_init_args_and_kwargs, _reinstantiate_wrapped_cls
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.types import STEP_OUTPUT
 from torch import Tensor
 from torch.utils.data import DataLoader, Sampler
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
-from lightning.fabric.utilities.cloud_io import get_filesystem
-from lightning.pytorch.accelerators.ipu import _IPU_AVAILABLE, _POPTORCH_AVAILABLE
-from lightning.pytorch.overrides.base import _LightningModuleWrapperBase
-from lightning.pytorch.plugins.precision import PrecisionPlugin
-from lightning.pytorch.strategies.parallel import ParallelStrategy
-from lightning.pytorch.strategies.strategy import TBroadcast
-from lightning.pytorch.strategies.utils import _fp_to_half
-from lightning.pytorch.trainer.states import RunningStage, TrainerFn
-from lightning.pytorch.utilities import rank_zero_warn
-from lightning.pytorch.utilities.data import _get_dataloader_init_args_and_kwargs, _reinstantiate_wrapped_cls
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.types import STEP_OUTPUT
+from lightning_graphcore.accelerator import _IPU_AVAILABLE, _POPTORCH_AVAILABLE
 
 if _POPTORCH_AVAILABLE:
     import poptorch
@@ -42,7 +44,7 @@ else:
     poptorch = None
 
 
-class IPUStrategy(ParallelStrategy):
+class StrategyIPU(ParallelStrategy):
     """Plugin for training on IPU devices.
 
     .. warning::  This is an :ref:`experimental <versioning:Experimental API>` feature.
@@ -52,7 +54,7 @@ class IPUStrategy(ParallelStrategy):
 
     def __init__(
         self,
-        accelerator: Optional["pl.accelerators.Accelerator"] = None,
+        accelerator: Optional[Accelerator] = None,
         device_iterations: int = 1,
         autoreport: bool = False,
         autoreport_dir: Optional[str] = None,
@@ -63,18 +65,16 @@ class IPUStrategy(ParallelStrategy):
         training_opts: Optional["poptorch.Options"] = None,
         inference_opts: Optional["poptorch.Options"] = None,
     ) -> None:
-        """
-        Arguments:
-
-            device_iterations: Number of iterations to run on device at once before returning to host.
-                This can be used as an optimization to speed up training.
-                https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html
-            autoreport: Enable auto-reporting for IPUs using PopVision
-                https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html
-            autoreport_dir: Optional directory to store autoReport output.
-            training_opts: Optional ``poptorch.Options`` to override the default created options for training.
-            inference_opts: Optional ``poptorch.Options`` to override the default
-                created options for validation/testing and predicting.
+        """Arguments:
+        device_iterations: Number of iterations to run on device at once before returning to host.
+        This can be used as an optimization to speed up training.
+        https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html
+        autoreport: Enable auto-reporting for IPUs using PopVision
+        https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html
+        autoreport_dir: Optional directory to store autoReport output.
+        training_opts: Optional ``poptorch.Options`` to override the default created options for training.
+        inference_opts: Optional ``poptorch.Options`` to override the default
+        created options for validation/testing and predicting.
         """
         super().__init__(
             accelerator=accelerator,
@@ -107,7 +107,7 @@ class IPUStrategy(ParallelStrategy):
         self._update_dataloader_original: Optional[Callable] = None
         self._optimizer_zero_grad_original: Optional[Callable] = None
 
-    def setup(self, trainer: "pl.Trainer") -> None:
+    def setup(self, trainer: Trainer) -> None:
         # patch the dataloader creation function with the custom `poptorch.DataLoader`.
         # this violates the intended control flow for the plugins, but since this is experimental, we have chosen
         # to use the simpler solution before adding abstractions to override the `DataLoader` class
@@ -154,7 +154,7 @@ class IPUStrategy(ParallelStrategy):
             model = poptorch.inferenceModel(model=self.model, options=self.inference_opts)
             self.poptorch_models[RunningStage.PREDICTING] = model
 
-    def setup_optimizers(self, trainer: "pl.Trainer") -> None:
+    def setup_optimizers(self, trainer: Trainer) -> None:
         super().setup_optimizers(trainer)
 
         if len(self.optimizers) > 1:

@@ -11,26 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Callable, cast, Literal, Union
+from typing import Any, Callable, Literal, Union, cast
 
+from lightning_fabric.utilities.types import Optimizable
+from pytorch_lightning.plugins.precision.precision_plugin import PrecisionPlugin
+from pytorch_lightning.utilities import GradClipAlgorithmType
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.rank_zero import WarningCache
 from torch import Tensor
 from torch.optim import LBFGS, Optimizer
 from typing_extensions import get_args
-
-import lightning.pytorch as pl
-from lightning.fabric.utilities.types import Optimizable
-from lightning.pytorch.plugins.precision.precision_plugin import PrecisionPlugin
-from lightning.pytorch.utilities import GradClipAlgorithmType
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import WarningCache
 
 warning_cache = WarningCache()
 
 _PRECISION_INPUT = Literal["32-true", "16-mixed"]
 
 
-class IPUPrecisionPlugin(PrecisionPlugin):
+class PrecisionIPU(PrecisionPlugin):
     """Precision plugin for IPU integration.
 
     .. warning::  This is an :ref:`experimental <versioning:Experimental API>` feature.
@@ -52,7 +50,7 @@ class IPUPrecisionPlugin(PrecisionPlugin):
     def backward(  # type: ignore[override]
         self,
         tensor: Tensor,
-        model: "pl.LightningModule",
+        model: LightningModule,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -65,7 +63,7 @@ class IPUPrecisionPlugin(PrecisionPlugin):
     def optimizer_step(  # type: ignore[override]
         self,
         optimizer: Optimizable,
-        model: "pl.LightningModule",
+        model: LightningModule,
         closure: Callable[[], Any],
         **kwargs: Any,
     ) -> Any:

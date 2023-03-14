@@ -17,17 +17,16 @@ from unittest import mock
 import pytest
 import torch
 import torch.nn.functional as F
+from pytorch_lightning import Callback, Trainer, seed_everything
+from pytorch_lightning.core.module import LightningModule
+from pytorch_lightning.demos.boring_classes import BoringModel
+from pytorch_lightning.strategies.ipu import IPUStrategy
+from pytorch_lightning.trainer.states import RunningStage, TrainerFn
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from torch.utils.data import DistributedSampler
 
-from lightning.pytorch import Callback, seed_everything, Trainer
-from lightning.pytorch.accelerators import IPUAccelerator
-from lightning.pytorch.accelerators.ipu import _IPU_AVAILABLE
-from lightning.pytorch.core.module import LightningModule
-from lightning.pytorch.demos.boring_classes import BoringModel
-from lightning.pytorch.plugins import IPUPrecisionPlugin
-from lightning.pytorch.strategies.ipu import IPUStrategy
-from lightning.pytorch.trainer.states import RunningStage, TrainerFn
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
+from lightning_graphcore.accelerator import _IPU_AVAILABLE, AcceleratorIPU
+from lightning_graphcore.precision import PrecisionIPU
 from tests.helpers import ClassifDataModule, ClassificationModel
 
 if _IPU_AVAILABLE:
@@ -79,19 +78,19 @@ class IPUClassificationModel(ClassificationModel):
 
 
 def test_auto_device_count():
-    assert IPUAccelerator.auto_device_count() == 4
+    assert AcceleratorIPU.auto_device_count() == 4
 
 
-@mock.patch("lightning.pytorch.accelerators.ipu.IPUAccelerator.is_available", return_value=True)
+@mock.patch("pytorch_lightning.accelerators.ipu.IPUAccelerator.is_available", return_value=True)
 def test_fail_if_no_ipus(_, tmpdir):
     with pytest.raises(MisconfigurationException, match="IPU Accelerator requires IPU devices to run"):
         Trainer(default_root_dir=tmpdir, accelerator="ipu", devices=1)
 
 
 def test_accelerator_selected(tmpdir):
-    assert IPUAccelerator.is_available()
+    assert AcceleratorIPU.is_available()
     trainer = Trainer(default_root_dir=tmpdir, accelerator="ipu", devices=1)
-    assert isinstance(trainer.accelerator, IPUAccelerator)
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
 
 
 def test_warning_if_ipus_not_used():
@@ -179,7 +178,7 @@ def test_half_precision(tmpdir):
         precision="16-mixed",
         callbacks=TestCallback(),
     )
-    assert isinstance(trainer.strategy.precision_plugin, IPUPrecisionPlugin)
+    assert isinstance(trainer.strategy.precision_plugin, PrecisionIPU)
     assert trainer.strategy.precision_plugin.precision == "16-mixed"
     with pytest.raises(SystemExit):
         trainer.fit(model)
@@ -205,7 +204,7 @@ def test_pure_half_precision(tmpdir):
     )
 
     assert isinstance(trainer.strategy, IPUStrategy)
-    assert isinstance(trainer.strategy.precision_plugin, IPUPrecisionPlugin)
+    assert isinstance(trainer.strategy.precision_plugin, PrecisionIPU)
     assert trainer.strategy.precision_plugin.precision == "16-mixed"
 
     changed_dtypes = [torch.float, torch.float64]
@@ -249,7 +248,6 @@ def test_device_iterations_ipu_strategy(tmpdir):
         trainer.fit(model)
 
 
-
 def test_accumulated_batches(tmpdir):
     class TestCallback(Callback):
         def on_train_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
@@ -269,7 +267,6 @@ def test_accumulated_batches(tmpdir):
     )
     with pytest.raises(SystemExit):
         trainer.fit(model)
-
 
 
 def test_stages_correct(tmpdir):
@@ -317,13 +314,11 @@ def test_stages_correct(tmpdir):
     trainer.predict(model, model.test_dataloader())
 
 
-
 def test_clip_gradients_fails(tmpdir):
     model = IPUModel()
     trainer = Trainer(default_root_dir=tmpdir, accelerator="ipu", devices=1, gradient_clip_val=10)
     with pytest.raises(MisconfigurationException, match="IPUs currently do not support clipping gradients."):
         trainer.fit(model)
-
 
 
 def test_autoreport(tmpdir):
@@ -340,7 +335,6 @@ def test_autoreport(tmpdir):
     trainer.fit(model)
     assert os.path.exists(autoreport_path)
     assert os.path.isfile(autoreport_path + "training/profile.pop")
-
 
 
 def test_manual_poptorch_dataloader(tmpdir):
@@ -374,7 +368,6 @@ def test_manual_poptorch_dataloader(tmpdir):
     assert dataloader.drop_last  # was kept
 
 
-
 def test_manual_poptorch_opts(tmpdir):
     """Ensure if the user passes manual poptorch Options, we run with the correct object."""
     model = IPUModel()
@@ -401,11 +394,10 @@ def test_manual_poptorch_opts(tmpdir):
     assert not isinstance(dataloader.sampler, DistributedSampler)
 
 
-
 def test_manual_poptorch_opts_custom(tmpdir):
-    """Ensure if the user passes manual poptorch Options with custom parameters set, we respect them in our
-    poptorch options and the dataloaders."""
-
+    """Ensure if the user passes manual poptorch Options with custom parameters set, we respect them in our poptorch
+    options and the dataloaders.
+    """
     model = IPUModel()
     training_opts = poptorch.Options()
     training_opts.deviceIterations(8)
@@ -452,14 +444,13 @@ def test_manual_poptorch_opts_custom(tmpdir):
     assert inference_opts.Training.gradient_accumulation == 1
 
 
-
 def test_replication_factor(tmpdir):
     """Ensure if the user passes manual poptorch Options with custom parameters set, we set them correctly in the
-    dataloaders."""
-
+    dataloaders.
+    """
     strategy = IPUStrategy()
     trainer = Trainer(accelerator="ipu", devices=2, default_root_dir=tmpdir, fast_dev_run=True, strategy=strategy)
-    assert isinstance(trainer.accelerator, IPUAccelerator)
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
     assert trainer.num_devices == 2
     assert trainer.strategy.replication_factor == 2
 
@@ -493,10 +484,8 @@ def test_replication_factor(tmpdir):
         assert trainer.strategy.replication_factor == 7
 
 
-
 def test_default_opts(tmpdir):
     """Ensure default opts are set correctly in the IPUStrategy."""
-
     model = IPUModel()
 
     trainer = Trainer(default_root_dir=tmpdir, accelerator="ipu", devices=1, fast_dev_run=True)
@@ -509,7 +498,6 @@ def test_default_opts(tmpdir):
         assert opts.Training.gradient_accumulation == 1
         assert opts.device_iterations == 1
         assert opts.replication_factor == 1
-
 
 
 def test_multi_optimizers_fails(tmpdir):
@@ -529,40 +517,34 @@ def test_multi_optimizers_fails(tmpdir):
         trainer.fit(model)
 
 
-
 def test_precision_plugin():
     """Ensure precision plugin value is set correctly."""
-
-    plugin = IPUPrecisionPlugin(precision="16-mixed")
+    plugin = PrecisionIPU(precision="16-mixed")
     assert plugin.precision == "16-mixed"
-
 
 
 def test_accelerator_ipu():
     trainer = Trainer(accelerator="ipu", devices=1)
-    assert isinstance(trainer.accelerator, IPUAccelerator)
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
 
     trainer = Trainer(accelerator="ipu")
-    assert isinstance(trainer.accelerator, IPUAccelerator)
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
 
     trainer = Trainer(accelerator="auto", devices=8)
-    assert isinstance(trainer.accelerator, IPUAccelerator)
-
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
 
 
 def test_accelerator_ipu_with_devices():
     trainer = Trainer(accelerator="ipu", devices=8)
     assert isinstance(trainer.strategy, IPUStrategy)
-    assert isinstance(trainer.accelerator, IPUAccelerator)
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
     assert trainer.num_devices == 8
-
 
 
 def test_accelerator_auto_with_devices_ipu():
     trainer = Trainer(accelerator="auto", devices=8)
-    assert isinstance(trainer.accelerator, IPUAccelerator)
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
     assert trainer.num_devices == 8
-
 
 
 def test_strategy_choice_ipu_strategy():
@@ -570,12 +552,10 @@ def test_strategy_choice_ipu_strategy():
     assert isinstance(trainer.strategy, IPUStrategy)
 
 
-
 def test_device_type_when_ipu_strategy_passed():
     trainer = Trainer(strategy=IPUStrategy(), accelerator="ipu", devices=8)
     assert isinstance(trainer.strategy, IPUStrategy)
-    assert isinstance(trainer.accelerator, IPUAccelerator)
-
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
 
 
 def test_poptorch_models_at_different_stages(tmpdir):
@@ -605,8 +585,7 @@ def test_poptorch_models_at_different_stages(tmpdir):
         assert list(trainer.strategy.poptorch_models) == [stage]
 
 
-
 def test_devices_auto_choice_ipu():
     trainer = Trainer(accelerator="auto", devices="auto")
     assert trainer.num_devices == 4
-    assert isinstance(trainer.accelerator, IPUAccelerator)
+    assert isinstance(trainer.accelerator, AcceleratorIPU)
