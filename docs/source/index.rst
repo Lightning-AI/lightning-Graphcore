@@ -11,6 +11,10 @@ Lightning-Graphcore documentation
    :caption: Start here
 
    readme
+   prepare
+   basic
+   intermediate
+   advanced
 
 
 Indices and tables
