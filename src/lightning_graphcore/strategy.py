@@ -137,22 +137,22 @@ class StrategyIPU(ParallelStrategy):
             inference_opts = self.inference_opts
             optimizer = self.lightning_module.trainer.optimizers[0]
             model = poptorch.trainingModel(model=self.model, options=training_opts, optimizer=optimizer)
-            self.poptorch_models[RunningStage.TRAINING] = model
+            self.poptorch_models[RunningStage.TRAINING] = model  # type: ignore[index]
 
             if self.lightning_module.trainer.enable_validation:
                 model = poptorch.inferenceModel(model=self.model, options=inference_opts)
-                self.poptorch_models[RunningStage.VALIDATING] = model
+                self.poptorch_models[RunningStage.VALIDATING] = model  # type: ignore[index]
                 if self.lightning_module.trainer.num_sanity_val_steps > 0:
-                    self.poptorch_models[RunningStage.SANITY_CHECKING] = model
+                    self.poptorch_models[RunningStage.SANITY_CHECKING] = model  # type: ignore[index]
         elif trainer_fn == TrainerFn.VALIDATING:
             model = poptorch.inferenceModel(model=self.model, options=self.inference_opts)
-            self.poptorch_models[RunningStage.VALIDATING] = model
+            self.poptorch_models[RunningStage.VALIDATING] = model  # type: ignore[index]
         elif trainer_fn == TrainerFn.TESTING:
             model = poptorch.inferenceModel(model=self.model, options=self.inference_opts)
-            self.poptorch_models[RunningStage.TESTING] = model
+            self.poptorch_models[RunningStage.TESTING] = model  # type: ignore[index]
         elif trainer_fn == TrainerFn.PREDICTING:
             model = poptorch.inferenceModel(model=self.model, options=self.inference_opts)
-            self.poptorch_models[RunningStage.PREDICTING] = model
+            self.poptorch_models[RunningStage.PREDICTING] = model  # type: ignore[index]
 
     def setup_optimizers(self, trainer: Trainer) -> None:
         super().setup_optimizers(trainer)
@@ -263,19 +263,19 @@ class StrategyIPU(ParallelStrategy):
 
     def training_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         with self.precision_plugin.train_step_context():
-            return self._step(RunningStage.TRAINING, *args, **kwargs)
+            return self._step(RunningStage.TRAINING, *args, **kwargs)  # type: ignore[arg-type]
 
     def validation_step(self, *args: Any, **kwargs: Any) -> Optional[STEP_OUTPUT]:
         with self.precision_plugin.val_step_context():
-            return self._step(RunningStage.VALIDATING, *args, **kwargs)
+            return self._step(RunningStage.VALIDATING, *args, **kwargs)  # type: ignore[arg-type]
 
     def test_step(self, *args: Any, **kwargs: Any) -> Optional[STEP_OUTPUT]:
         with self.precision_plugin.test_step_context():
-            return self._step(RunningStage.TESTING, *args, **kwargs)
+            return self._step(RunningStage.TESTING, *args, **kwargs)  # type: ignore[arg-type]
 
     def predict_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         with self.precision_plugin.predict_step_context():
-            return self._step(RunningStage.PREDICTING, *args, **kwargs)
+            return self._step(RunningStage.PREDICTING, *args, **kwargs)  # type: ignore[arg-type]
 
     def teardown(self) -> None:
         if self._update_dataloader_original is not None:
@@ -285,7 +285,7 @@ class StrategyIPU(ParallelStrategy):
         assert self.lightning_module is not None
         if self._optimizer_zero_grad_original is not None:
             # re-enable `optimizer_zero_grad`
-            self.lightning_module.optimizer_zero_grad = (  # type: ignore[method-assign]
+            self.lightning_module.optimizer_zero_grad = (  # type: ignore[assignment]
                 self._optimizer_zero_grad_original
             )
 
@@ -316,16 +316,16 @@ class StrategyIPU(ParallelStrategy):
             model.attachToDevice()
 
     def on_train_start(self) -> None:
-        self._load_model(RunningStage.TRAINING)
+        self._load_model(RunningStage.TRAINING)  # type: ignore[arg-type]
 
     def on_validation_start(self) -> None:
-        self._load_model(RunningStage.VALIDATING)
+        self._load_model(RunningStage.VALIDATING)  # type: ignore[arg-type]
 
     def on_test_start(self) -> None:
-        self._load_model(RunningStage.TESTING)
+        self._load_model(RunningStage.TESTING)  # type: ignore[arg-type]
 
     def on_predict_start(self) -> None:
-        self._load_model(RunningStage.PREDICTING)
+        self._load_model(RunningStage.PREDICTING)  # type: ignore[arg-type]
 
     def on_train_end(self) -> None:
         self._detach_models()
@@ -342,7 +342,7 @@ class StrategyIPU(ParallelStrategy):
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> None:
         # Updates optimizer stats if LR scheduler modified the optimizer state
         optimizer = self.optimizers[0]
-        self.poptorch_models[RunningStage.TRAINING].setOptimizer(optimizer)
+        self.poptorch_models[RunningStage.TRAINING].setOptimizer(optimizer)  # type: ignore[index]
 
     @property
     def root_device(self) -> torch.device:  # type: ignore[empty-body]

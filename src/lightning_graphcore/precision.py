@@ -48,7 +48,7 @@ class PrecisionIPU(PrecisionPlugin):
             )
         self.precision = cast(_PRECISION_INPUT, str(precision))
 
-    def backward(  # type: ignore[override]
+    def backward(
         self,
         tensor: Tensor,
         model: LightningModule,
@@ -61,7 +61,7 @@ class PrecisionIPU(PrecisionPlugin):
                 " the backward logic internally."
             )
 
-    def optimizer_step(  # type: ignore[override]
+    def optimizer_step(
         self,
         optimizer: Optimizable,
         model: LightningModule,
@@ -88,7 +88,7 @@ class PrecisionIPU(PrecisionPlugin):
         self,
         optimizer: Optimizer,
         clip_val: Union[int, float] = 0.0,
-        gradient_clip_algorithm: GradClipAlgorithmType = GradClipAlgorithmType.NORM,
+        gradient_clip_algorithm: GradClipAlgorithmType = GradClipAlgorithmType.NORM,  # type: ignore[assignment]
     ) -> None:
         if clip_val <= 0:
             return
