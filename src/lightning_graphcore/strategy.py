@@ -44,7 +44,7 @@ else:
     poptorch = None
 
 
-class StrategyIPU(ParallelStrategy):
+class IPUStrategy(ParallelStrategy):
     """Plugin for training on IPU devices.
 
     Args:

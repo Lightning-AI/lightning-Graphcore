@@ -29,7 +29,7 @@ else:
     _IPU_AVAILABLE = False
 
 
-class AcceleratorIPU(Accelerator):
+class IPUAccelerator(Accelerator):
     """Accelerator for IPUs.
 
     .. warning::  Use of this accelerator beyond import and instantiation is experimental.
