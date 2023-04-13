@@ -62,10 +62,10 @@ repos:
         additional_dependencies:
           - pep8-naming
           - pydocstyle
-          #- flake8-comprehensions
-          #- flake8-pytest-style
-          #- flake8-return
-          #- flake8-simplify
+          - flake8-comprehensions
+          - flake8-pytest-style
+          - flake8-return
+          - flake8-simplify
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.0.240
