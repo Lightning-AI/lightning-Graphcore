@@ -285,9 +285,7 @@ class StrategyIPU(ParallelStrategy):
         assert self.lightning_module is not None
         if self._optimizer_zero_grad_original is not None:
             # re-enable `optimizer_zero_grad`
-            self.lightning_module.optimizer_zero_grad = (  # type: ignore[assignment]
-                self._optimizer_zero_grad_original
-            )
+            self.lightning_module.optimizer_zero_grad = self._optimizer_zero_grad_original  # type: ignore[assignment]
 
         for model in self.poptorch_models.values():
             model.destroy()
