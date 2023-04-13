@@ -16,7 +16,7 @@ from unittest import mock
 
 import pytest
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 from pytorch_lightning import Callback, Trainer, seed_everything
 from pytorch_lightning.core.module import LightningModule
 from pytorch_lightning.demos.boring_classes import BoringModel
@@ -48,27 +48,23 @@ class IPUClassificationModel(ClassificationModel):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = F.cross_entropy(logits, y)
-        return loss
+        return F.cross_entropy(logits, y)
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        acc = self.accuracy(logits, y)
-        return acc
+        return self.accuracy(logits, y)
 
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        acc = self.accuracy(logits, y)
-        return acc
+        return self.accuracy(logits, y)
 
     def accuracy(self, logits, y):
         # todo (sean): currently IPU poptorch doesn't implicit convert bools to tensor
         # hence we use an explicit calculation for accuracy here. Once fixed in poptorch
         # we can use the accuracy metric.
-        acc = torch.sum(torch.eq(torch.argmax(logits, -1), y).to(torch.float32)) / len(y)
-        return acc
+        return torch.sum(torch.eq(torch.argmax(logits, -1), y).to(torch.float32)) / len(y)
 
     def validation_epoch_end(self, outputs) -> None:
         self.log("val_acc", torch.stack(outputs).mean())
@@ -82,7 +78,7 @@ def test_auto_device_count():
 
 
 @mock.patch("pytorch_lightning.accelerators.ipu.IPUAccelerator.is_available", return_value=True)
-def test_fail_if_no_ipus(_, tmpdir):
+def test_fail_if_no_ipus(_, tmpdir):  # noqa: PT019
     with pytest.raises(MisconfigurationException, match="IPU Accelerator requires IPU devices to run"):
         Trainer(default_root_dir=tmpdir, accelerator="ipu", devices=1)
 
@@ -395,8 +391,9 @@ def test_manual_poptorch_opts(tmpdir):
 
 
 def test_manual_poptorch_opts_custom(tmpdir):
-    """Ensure if the user passes manual poptorch Options with custom parameters set, we respect them in our poptorch
-    options and the dataloaders.
+    """Ensure if the user passes manual poptorch Options with custom parameters set.
+
+    We respect them in our poptorch options and the dataloaders.
     """
     model = IPUModel()
     training_opts = poptorch.Options()
@@ -445,8 +442,9 @@ def test_manual_poptorch_opts_custom(tmpdir):
 
 
 def test_replication_factor(tmpdir):
-    """Ensure if the user passes manual poptorch Options with custom parameters set, we set them correctly in the
-    dataloaders.
+    """Ensure if the user passes manual poptorch Options with custom parameters set.
+
+    We set them correctly in the dataloaders.
     """
     strategy = IPUStrategy()
     trainer = Trainer(accelerator="ipu", devices=2, default_root_dir=tmpdir, fast_dev_run=True, strategy=strategy)

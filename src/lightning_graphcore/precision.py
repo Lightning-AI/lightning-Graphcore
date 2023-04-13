@@ -14,6 +14,7 @@
 from typing import Any, Callable, Literal, Union, cast
 
 from lightning_fabric.utilities.types import Optimizable
+from pytorch_lightning import LightningModule
 from pytorch_lightning.plugins.precision.precision_plugin import PrecisionPlugin
 from pytorch_lightning.utilities import GradClipAlgorithmType
 from pytorch_lightning.utilities.exceptions import MisconfigurationException

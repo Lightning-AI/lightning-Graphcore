@@ -47,6 +47,17 @@ else:
 class StrategyIPU(ParallelStrategy):
     """Plugin for training on IPU devices.
 
+    Args:
+        device_iterations: Number of iterations to run on device at once before returning to host.
+        This can be used as an optimization to speed up training.
+        https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html
+        autoreport: Enable auto-reporting for IPUs using PopVision
+        https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html
+        autoreport_dir: Optional directory to store autoReport output.
+        training_opts: Optional ``poptorch.Options`` to override the default created options for training.
+        inference_opts: Optional ``poptorch.Options`` to override the default
+        created options for validation/testing and predicting.
+
     .. warning::  This is an :ref:`experimental <versioning:Experimental API>` feature.
     """
 
@@ -65,17 +76,6 @@ class StrategyIPU(ParallelStrategy):
         training_opts: Optional["poptorch.Options"] = None,
         inference_opts: Optional["poptorch.Options"] = None,
     ) -> None:
-        """Arguments:
-        device_iterations: Number of iterations to run on device at once before returning to host.
-        This can be used as an optimization to speed up training.
-        https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html
-        autoreport: Enable auto-reporting for IPUs using PopVision
-        https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html
-        autoreport_dir: Optional directory to store autoReport output.
-        training_opts: Optional ``poptorch.Options`` to override the default created options for training.
-        inference_opts: Optional ``poptorch.Options`` to override the default
-        created options for validation/testing and predicting.
-        """
         super().__init__(
             accelerator=accelerator,
             parallel_devices=parallel_devices,
@@ -234,17 +234,15 @@ class StrategyIPU(ParallelStrategy):
             return torch.tensor(x).unsqueeze(0).repeat(self._n_replicate)
 
         args = apply_to_collection(args, dtype=list, function=to_tuple)
-        args = apply_to_collection(args, dtype=(int, float), function=to_tensor)
-        return args
+        return apply_to_collection(args, dtype=(int, float), function=to_tensor)
 
     def batch_to_device(self, batch: Any, device: Optional[torch.device] = None, dataloader_idx: int = 0) -> Any:
         # This override is necessary because the cast must occur before the data
         # is moved to the device to prevent wasteful host->device copies.
-        batch = apply_to_collection(batch, Tensor, function=_fp_to_half, precision=self.precision_plugin.precision)
         # We don't call `super().batch_to_device` because `data.to(device)` is not
         # currently necessary for IPUs. The movement of data from host<->IPU is
         # currently handled by PopTorch.
-        return batch
+        return apply_to_collection(batch, Tensor, function=_fp_to_half, precision=self.precision_plugin.precision)
 
     def _disable_zero_grad(self) -> None:
         lightning_module = self.lightning_module
@@ -307,7 +305,7 @@ class StrategyIPU(ParallelStrategy):
                 model.detachFromDevice()
 
     def _load_model(self, stage: RunningStage) -> None:
-        """Loads the stage specific accelerator model onto device if compiled and not attached to IPU devices.
+        """Load the stage specific accelerator model onto device if compiled and not attached to IPU devices.
 
         Args:
             stage: The stage to load
