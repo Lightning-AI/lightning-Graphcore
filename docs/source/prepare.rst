@@ -69,8 +69,6 @@ Remove samplers
 
 :class:`~torch.utils.data.distributed.DistributedSampler` is automatically handled by Lightning.
 
-See :ref:`replace-sampler-ddp` for more information.
-
 ----
 
 ***************************************

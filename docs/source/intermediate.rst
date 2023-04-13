@@ -4,7 +4,6 @@ Accelerator: IPU training
 =========================
 **Audience:** IPU users looking to increase performance via mixed precision and analysis tools.
 
-.. warning::  This is an :ref:`experimental <versioning:Experimental API>` feature.
 
 ----
 
@@ -43,7 +42,7 @@ You can also use pure 16-bit training, where the weights are also in 16-bit prec
 PopVision Graph Analyser
 ------------------------
 
-.. figure:: ../_static/images/accelerator/ipus/profiler.png
+.. figure:: _static/images/ipu/profiler.png
    :alt: PopVision Graph Analyser
    :width: 500
 

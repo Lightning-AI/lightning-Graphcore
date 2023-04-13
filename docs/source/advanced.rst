@@ -4,7 +4,6 @@ Accelerator: IPU training
 =========================
 **Audience:** Users looking to customize IPU training for massive models.
 
-.. warning::  This is an :ref:`experimental <versioning:Experimental API>` feature.
 
 ----
 
