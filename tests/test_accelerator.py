@@ -117,7 +117,9 @@ def test_all_stages(tmpdir, devices):
 def test_inference_only(tmpdir, devices):
     model = IPUModel()
 
-    trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, accelerator=IPUAccelerator(), devices=devices)
+    trainer = Trainer(
+        default_root_dir=tmpdir, fast_dev_run=True, strategy=IPUStrategy(accelerator=IPUAccelerator()), devices=devices
+    )
     trainer.validate(model)
     trainer.test(model)
     trainer.predict(model)
