@@ -174,9 +174,8 @@ def test_half_precision(tmpdir):
     trainer = Trainer(
         default_root_dir=tmpdir,
         fast_dev_run=True,
-        accelerator=IPUAccelerator(),
+        strategy=IPUStrategy(accelerator=IPUAccelerator(), precision_plugin=IPUPrecision("16-mixed")),
         devices=1,
-        precision=IPUPrecision("16-mixed"),
         callbacks=TestCallback(),
     )
     assert isinstance(trainer.strategy.precision_plugin, IPUPrecision)
@@ -198,9 +197,8 @@ def test_pure_half_precision(tmpdir):
     trainer = Trainer(
         default_root_dir=tmpdir,
         fast_dev_run=True,
-        accelerator=IPUAccelerator(),
+        strategy=IPUStrategy(accelerator=IPUAccelerator(), precision_plugin=IPUPrecision("16-mixed")),
         devices=1,
-        precision=IPUPrecision("16-mixed"),
         callbacks=TestCallback(),
     )
 
