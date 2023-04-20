@@ -321,7 +321,7 @@ def test_clip_gradients_fails(tmpdir):
         trainer.fit(model)
 
 
-@pytest.mark.xfail(RuntimeError)  # todo: element 0 of tensors does not require grad and does not have ...
+@pytest.mark.xfail(RuntimeError, reason="element 0 of tensors does not require grad and does not have ...")  # todo
 def test_autoreport(tmpdir):
     """Ensure autoreport dumps to a file."""
     model = IPUModel()
@@ -338,7 +338,7 @@ def test_autoreport(tmpdir):
     assert os.path.isfile(autoreport_path + "training/profile.pop")
 
 
-@pytest.mark.xfail(RuntimeError)  # todo: element 0 of tensors does not require grad and does not have ...
+@pytest.mark.xfail(RuntimeError, reason="element 0 of tensors does not require grad and does not have ...")  # todo
 def test_manual_poptorch_dataloader(tmpdir):
     model_options = poptorch.Options()
 
@@ -370,7 +370,7 @@ def test_manual_poptorch_dataloader(tmpdir):
     assert dataloader.drop_last  # was kept
 
 
-@pytest.mark.xfail(RuntimeError)  # todo: element 0 of tensors does not require grad and does not have ...
+@pytest.mark.xfail(RuntimeError, reason="element 0 of tensors does not require grad and does not have ...")  # todo
 def test_manual_poptorch_opts(tmpdir):
     """Ensure if the user passes manual poptorch Options, we run with the correct object."""
     model = IPUModel()
