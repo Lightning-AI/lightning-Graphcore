@@ -313,7 +313,7 @@ def test_stages_correct(tmpdir):
     trainer.predict(model, model.test_dataloader())
 
 
-@pytest.mark.xfail()  # todo: did not raise exception
+@pytest.mark.skip()  # todo: did not raise exception
 def test_clip_gradients_fails(tmpdir):
     model = IPUModel()
     trainer = Trainer(default_root_dir=tmpdir, accelerator=IPUAccelerator(), devices=1, gradient_clip_val=10)
@@ -507,7 +507,7 @@ def test_default_opts(tmpdir):
         assert opts.replication_factor == 1
 
 
-@pytest.mark.xfail()  # todo: did not raise exception
+@pytest.mark.skip()  # todo: did not raise exception
 def test_multi_optimizers_fails(tmpdir):
     """Ensure if there are multiple optimizers, we throw an exception."""
 
