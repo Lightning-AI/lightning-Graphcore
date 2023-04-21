@@ -101,7 +101,7 @@ class IPUPrecision(PrecisionPlugin):
         self,
         optimizer: Optimizer,
         clip_val: Union[int, float] = 0.0,
-        gradient_clip_algorithm: GradClipAlgorithmType = GradClipAlgorithmType.NORM,  # type: ignore[assignment]
+        gradient_clip_algorithm: GradClipAlgorithmType = GradClipAlgorithmType.NORM,
     ) -> None:
         if clip_val <= 0:
             return
