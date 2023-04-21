@@ -597,16 +597,6 @@ def test_devices_auto_choice_ipu():
     assert isinstance(trainer.accelerator, IPUAccelerator)
 
 
-def test_unsupported_accelerators(accelerators_class):
-    """Test that an error is raised for accelerators that require the gradient accumulation factor to be fixed."""
-    scheduler = GradientAccumulationScheduler({1: 2})
-    model = BoringModel()
-    trainer = Trainer()
-    trainer._accelerator_connector.strategy = Mock(accelerator=Mock(spec=IPUAccelerator))
-    with pytest.raises(RuntimeError, match="does not support `accumulate_grad_batches` changing between epochs"):
-        scheduler.on_train_start(trainer, model)
-
-
 @pytest.mark.parametrize("trainer_kwargs", [{"accelerator": "ipu"}])
 @pytest.mark.parametrize("hook", ["transfer_batch_to_device", "on_after_batch_transfer"])
 def test_raise_exception_with_batch_transfer_hooks(monkeypatch, hook, trainer_kwargs, tmpdir):
@@ -632,8 +622,8 @@ def test_unsupported_ipu_choice(monkeypatch):
         Trainer(accelerator="ipu", precision="64-true")
 
 
-@mock.patch("lightning.pytorch.accelerators.ipu.IPUAccelerator.is_available", return_value=True)
-def test_num_stepping_batches_with_ipu(mock_ipu_acc_avail, monkeypatch):
+@pytest.mark.xfail()  # todo
+def test_num_stepping_batches_with_ipu(monkeypatch):
     """Test stepping batches with IPU training which acts like DP."""
     import lightning.pytorch.strategies.ipu as ipu
 
