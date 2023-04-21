@@ -13,16 +13,29 @@
 # limitations under the License.
 from typing import Any, Callable, Literal, Union, cast
 
-from lightning_fabric.utilities.types import Optimizable
-from pytorch_lightning import LightningModule
-from pytorch_lightning.plugins.precision.precision_plugin import PrecisionPlugin
-from pytorch_lightning.utilities import GradClipAlgorithmType
-from pytorch_lightning.utilities.exceptions import MisconfigurationException
-from pytorch_lightning.utilities.model_helpers import is_overridden
-from pytorch_lightning.utilities.rank_zero import WarningCache
+from lightning_utilities.core.imports import package_available
 from torch import Tensor
 from torch.optim import LBFGS, Optimizer
 from typing_extensions import get_args
+
+if package_available("lightning"):
+    from lightning.fabric.utilities.types import Optimizable
+    from lightning.pytorch import LightningModule
+    from lightning.pytorch.plugins.precision.precision_plugin import PrecisionPlugin
+    from lightning.pytorch.utilities import GradClipAlgorithmType
+    from lightning.pytorch.utilities.exceptions import MisconfigurationException
+    from lightning.pytorch.utilities.model_helpers import is_overridden
+    from lightning.pytorch.utilities.rank_zero import WarningCache
+elif package_available("pytorch_lightning"):
+    from lightning_fabric.utilities.types import Optimizable
+    from pytorch_lightning import LightningModule
+    from pytorch_lightning.plugins.precision.precision_plugin import PrecisionPlugin
+    from pytorch_lightning.utilities import GradClipAlgorithmType
+    from pytorch_lightning.utilities.exceptions import MisconfigurationException
+    from pytorch_lightning.utilities.model_helpers import is_overridden
+    from pytorch_lightning.utilities.rank_zero import WarningCache
+else:
+    raise ModuleNotFoundError("You are missing `lightning` or `pytorch-lightning` package, please install it.")
 
 warning_cache = WarningCache()
 
@@ -88,7 +101,7 @@ class IPUPrecision(PrecisionPlugin):
         self,
         optimizer: Optimizer,
         clip_val: Union[int, float] = 0.0,
-        gradient_clip_algorithm: GradClipAlgorithmType = GradClipAlgorithmType.NORM,  # type: ignore[assignment]
+        gradient_clip_algorithm: GradClipAlgorithmType = GradClipAlgorithmType.NORM,
     ) -> None:
         if clip_val <= 0:
             return

@@ -14,9 +14,16 @@
 from typing import Any, Dict, List
 
 import torch
-from lightning_fabric.utilities.types import _DEVICE
 from lightning_utilities.core.imports import package_available
-from pytorch_lightning.accelerators.accelerator import Accelerator
+
+if package_available("lightning"):
+    from lightning.fabric.utilities.types import _DEVICE
+    from lightning.pytorch.accelerators.accelerator import Accelerator
+elif package_available("pytorch_lightning"):
+    from lightning_fabric.utilities.types import _DEVICE
+    from pytorch_lightning.accelerators.accelerator import Accelerator
+else:
+    raise ModuleNotFoundError("You are missing `lightning` or `pytorch-lightning` package, please install it.")
 
 _POPTORCH_AVAILABLE = package_available("poptorch")
 
