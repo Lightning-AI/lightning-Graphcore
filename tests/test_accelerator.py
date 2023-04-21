@@ -18,17 +18,16 @@ from unittest.mock import Mock
 import poptorch
 import pytest
 import torch
-import torch.nn.functional as F  # noqa: N812
 from lightning_utilities.core.imports import package_available
 from torch.utils.data import DistributedSampler
 
 if package_available("lightning"):
     from lightning.pytorch import Callback, Trainer, seed_everything
+    from lightning.pytorch.callbacks import GradientAccumulationScheduler
     from lightning.pytorch.core.module import LightningModule
     from lightning.pytorch.demos.boring_classes import BoringModel
     from lightning.pytorch.trainer.states import RunningStage, TrainerFn
     from lightning.pytorch.utilities.exceptions import MisconfigurationException
-    from lightning.pytorch.callbacks import GradientAccumulationScheduler
 
 elif package_available("pytorch_lightning"):
     from pytorch_lightning import Callback, Trainer, seed_everything
@@ -37,7 +36,6 @@ elif package_available("pytorch_lightning"):
     from pytorch_lightning.trainer.states import RunningStage, TrainerFn
     from pytorch_lightning.utilities.exceptions import MisconfigurationException
     from pytorch_lightning.callbacks import GradientAccumulationScheduler
-
 
 from lightning_graphcore import IPUStrategy
 from lightning_graphcore.accelerator import IPUAccelerator
