@@ -16,6 +16,7 @@ from typing import Tuple
 import torch
 import torch.nn.functional as F  # noqa: N812
 from pytorch_lightning import LightningDataModule, LightningModule
+from pytorch_lightning.demos.boring_classes import BoringModel
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, Dataset
 from torchmetrics import Accuracy
@@ -150,3 +151,43 @@ class ClassificationModel(LightningModule):
     def predict_step(self, batch, batch_idx):
         x, _ = batch
         return self.forward(x)
+
+
+class IPUModel(BoringModel):
+    def training_step(self, batch, batch_idx):
+        return self.step(batch)
+
+    def validation_step(self, batch, batch_idx):
+        return self.step(batch)
+
+    def test_step(self, batch, batch_idx):
+        return self.step(batch)
+
+
+class IPUClassificationModel(ClassificationModel):
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        return F.cross_entropy(logits, y)
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        return self.accuracy(logits, y)
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        return self.accuracy(logits, y)
+
+    def accuracy(self, logits, y):
+        # todo (sean): currently IPU poptorch doesn't implicit convert bools to tensor
+        # hence we use an explicit calculation for accuracy here. Once fixed in poptorch
+        # we can use the accuracy metric.
+        return torch.sum(torch.eq(torch.argmax(logits, -1), y).to(torch.float32)) / len(y)
+
+    def validation_epoch_end(self, outputs) -> None:
+        self.log("val_acc", torch.stack(outputs).mean())
+
+    def test_epoch_end(self, outputs) -> None:
+        self.log("test_acc", torch.stack(outputs).mean())
