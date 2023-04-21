@@ -14,9 +14,9 @@
 import os
 from unittest import mock
 
+import poptorch
 import pytest
 import torch
-import torch.nn.functional as F  # noqa: N812
 from lightning_utilities.core.imports import package_available
 from torch.utils.data import DistributedSampler
 
@@ -26,6 +26,7 @@ if package_available("lightning"):
     from lightning.pytorch.demos.boring_classes import BoringModel
     from lightning.pytorch.trainer.states import RunningStage, TrainerFn
     from lightning.pytorch.utilities.exceptions import MisconfigurationException
+
 elif package_available("pytorch_lightning"):
     from pytorch_lightning import Callback, Trainer, seed_everything
     from pytorch_lightning.core.module import LightningModule
@@ -34,52 +35,9 @@ elif package_available("pytorch_lightning"):
     from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from lightning_graphcore import IPUStrategy
-from lightning_graphcore.accelerator import _IPU_AVAILABLE, IPUAccelerator
+from lightning_graphcore.accelerator import IPUAccelerator
 from lightning_graphcore.precision import IPUPrecision
-from tests.helpers import ClassifDataModule, ClassificationModel
-
-if _IPU_AVAILABLE:
-    import poptorch
-
-
-class IPUModel(BoringModel):
-    def training_step(self, batch, batch_idx):
-        return self.step(batch)
-
-    def validation_step(self, batch, batch_idx):
-        return self.step(batch)
-
-    def test_step(self, batch, batch_idx):
-        return self.step(batch)
-
-
-class IPUClassificationModel(ClassificationModel):
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self(x)
-        return F.cross_entropy(logits, y)
-
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self(x)
-        return self.accuracy(logits, y)
-
-    def test_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self(x)
-        return self.accuracy(logits, y)
-
-    def accuracy(self, logits, y):
-        # todo (sean): currently IPU poptorch doesn't implicit convert bools to tensor
-        # hence we use an explicit calculation for accuracy here. Once fixed in poptorch
-        # we can use the accuracy metric.
-        return torch.sum(torch.eq(torch.argmax(logits, -1), y).to(torch.float32)) / len(y)
-
-    def validation_epoch_end(self, outputs) -> None:
-        self.log("val_acc", torch.stack(outputs).mean())
-
-    def test_epoch_end(self, outputs) -> None:
-        self.log("test_acc", torch.stack(outputs).mean())
+from tests.helpers import ClassifDataModule, IPUClassificationModel, IPUModel
 
 
 def test_auto_device_count():
@@ -634,3 +592,42 @@ def test_devices_auto_choice_ipu():
     trainer = Trainer(accelerator="auto", devices="auto")
     assert trainer.num_devices == 4
     assert isinstance(trainer.accelerator, IPUAccelerator)
+
+
+@pytest.mark.parametrize("trainer_kwargs", [{"accelerator": "ipu"}])
+@pytest.mark.parametrize("hook", ["transfer_batch_to_device", "on_after_batch_transfer"])
+def test_raise_exception_with_batch_transfer_hooks(monkeypatch, hook, trainer_kwargs, tmpdir):
+    """Test that an exception is raised when overriding batch_transfer_hooks."""
+
+    def custom_method(self, batch, *_, **__):
+        return batch + 1
+
+    trainer = Trainer(default_root_dir=tmpdir, accelerator="ipu")
+
+    model = BoringModel()
+    setattr(model, hook, custom_method)
+
+    match_pattern = rf"Overriding `{hook}` is not .* with IPUs"
+    with pytest.raises(MisconfigurationException, match=match_pattern):
+        trainer.fit(model)
+
+
+def test_unsupported_ipu_choice(monkeypatch):
+    with pytest.raises(ValueError, match=r"accelerator='ipu', precision='bf16-mixed'\)` is not supported"):
+        Trainer(accelerator="ipu", precision="bf16-mixed")
+    with pytest.raises(ValueError, match=r"accelerator='ipu', precision='64-true'\)` is not supported"):
+        Trainer(accelerator="ipu", precision="64-true")
+
+
+@pytest.mark.xfail()  # todo
+def test_num_stepping_batches_with_ipu(monkeypatch):
+    """Test stepping batches with IPU training which acts like DP."""
+    import lightning.pytorch.strategies.ipu as ipu
+
+    monkeypatch.setattr(ipu, "_IPU_AVAILABLE", True)
+    trainer = Trainer(accelerator="ipu", devices=2, max_epochs=1)
+    model = BoringModel()
+    trainer._data_connector.attach_data(model)
+    trainer.strategy.connect(model)
+    assert isinstance(trainer.strategy, IPUStrategy)
+    assert trainer.estimated_stepping_batches == 64
