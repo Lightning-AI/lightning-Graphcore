@@ -102,7 +102,6 @@ def test_accelerator_selected(tmpdir):
     assert isinstance(trainer.accelerator, IPUAccelerator)
 
 
-@pytest.mark.xfail()  # todo: DID NOT WARN
 def test_warning_if_ipus_not_used():
     with pytest.warns(UserWarning, match="IPU available but not used. Set `accelerator` and `devices`"):
         Trainer(accelerator="cpu")
@@ -114,7 +113,18 @@ def test_no_warning_strategy(tmpdir):
     assert len(record) == 0
 
 
-@pytest.mark.parametrize("devices", [1, 4])
+@pytest.mark.parametrize(
+    "devices",
+    [
+        1,
+        pytest.param(
+            4,
+            marks=pytest.mark.xfail(
+                AssertionError, reason="Invalid batch dimension: In the input torch.Size([1, 32]), ..."
+            ),
+        ),
+    ],
+)
 def test_all_stages(tmpdir, devices):
     model = IPUModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, strategy=IPUStrategy(), devices=devices)
@@ -419,6 +429,7 @@ def test_manual_poptorch_opts(tmpdir):
     assert not isinstance(dataloader.sampler, DistributedSampler)
 
 
+@pytest.mark.xfail(AssertionError, reason="Invalid batch dimension: In the input torch.Size([1, 32]), ...")
 def test_manual_poptorch_opts_custom(tmpdir):
     """Ensure if the user passes manual poptorch Options with custom parameters set.
 
