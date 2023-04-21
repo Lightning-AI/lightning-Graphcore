@@ -15,11 +15,19 @@ from typing import Tuple
 
 import torch
 import torch.nn.functional as F  # noqa: N812
-from pytorch_lightning import LightningDataModule, LightningModule
-from pytorch_lightning.demos.boring_classes import BoringModel
+from lightning_utilities.core.imports import package_available
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, Dataset
 from torchmetrics import Accuracy
+
+if package_available("lightning"):
+    from lightning.pytorch import LightningDataModule, LightningModule
+    from lightning.pytorch.demos.boring_classes import BoringModel
+elif package_available("pytorch_lightning"):
+    from pytorch_lightning import LightningDataModule, LightningModule
+    from pytorch_lightning.demos.boring_classes import BoringModel
+else:
+    raise ModuleNotFoundError("You are missing `lightning` or `pytorch-lightning` package, please install it.")
 
 
 class SklearnDataset(Dataset):

@@ -17,24 +17,45 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import pytorch_lightning as pl
 import torch
-from lightning_fabric.plugins import CheckpointIO, ClusterEnvironment
-from lightning_fabric.utilities.cloud_io import get_filesystem
 from lightning_utilities.core.apply_func import apply_to_collection
-from pytorch_lightning import Trainer
-from pytorch_lightning.accelerators import Accelerator
-from pytorch_lightning.overrides.base import _LightningModuleWrapperBase
-from pytorch_lightning.plugins.precision import PrecisionPlugin
-from pytorch_lightning.strategies.parallel import ParallelStrategy
-from pytorch_lightning.strategies.strategy import TBroadcast
-from pytorch_lightning.strategies.utils import _fp_to_half
-from pytorch_lightning.trainer.states import RunningStage, TrainerFn
-from pytorch_lightning.utilities import rank_zero_warn
-from pytorch_lightning.utilities.data import _get_dataloader_init_args_and_kwargs, _reinstantiate_wrapped_cls
-from pytorch_lightning.utilities.exceptions import MisconfigurationException
-from pytorch_lightning.utilities.model_helpers import is_overridden
-from pytorch_lightning.utilities.types import STEP_OUTPUT
+from lightning_utilities.core.imports import package_available
 from torch import Tensor
 from torch.utils.data import DataLoader, Sampler
+
+if package_available("lightning"):
+    from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
+    from lightning.fabric.utilities.cloud_io import get_filesystem
+    from lightning.pytorch import Trainer
+    from lightning.pytorch.accelerators import Accelerator
+    from lightning.pytorch.overrides.base import _LightningModuleWrapperBase
+    from lightning.pytorch.plugins.precision import PrecisionPlugin
+    from lightning.pytorch.strategies.parallel import ParallelStrategy
+    from lightning.pytorch.strategies.strategy import TBroadcast
+    from lightning.pytorch.strategies.utils import _fp_to_half
+    from lightning.pytorch.trainer.states import RunningStage, TrainerFn
+    from lightning.pytorch.utilities import rank_zero_warn
+    from lightning.pytorch.utilities.data import _get_dataloader_init_args_and_kwargs, _reinstantiate_wrapped_cls
+    from lightning.pytorch.utilities.exceptions import MisconfigurationException
+    from lightning.pytorch.utilities.model_helpers import is_overridden
+    from lightning.pytorch.utilities.types import STEP_OUTPUT
+elif package_available("pytorch_lightning"):
+    from lightning_fabric.plugins import CheckpointIO, ClusterEnvironment
+    from lightning_fabric.utilities.cloud_io import get_filesystem
+    from pytorch_lightning import Trainer
+    from pytorch_lightning.accelerators import Accelerator
+    from pytorch_lightning.overrides.base import _LightningModuleWrapperBase
+    from pytorch_lightning.plugins.precision import PrecisionPlugin
+    from pytorch_lightning.strategies.parallel import ParallelStrategy
+    from pytorch_lightning.strategies.strategy import TBroadcast
+    from pytorch_lightning.strategies.utils import _fp_to_half
+    from pytorch_lightning.trainer.states import RunningStage, TrainerFn
+    from pytorch_lightning.utilities import rank_zero_warn
+    from pytorch_lightning.utilities.data import _get_dataloader_init_args_and_kwargs, _reinstantiate_wrapped_cls
+    from pytorch_lightning.utilities.exceptions import MisconfigurationException
+    from pytorch_lightning.utilities.model_helpers import is_overridden
+    from pytorch_lightning.utilities.types import STEP_OUTPUT
+else:
+    raise ModuleNotFoundError("You are missing `lightning` or `pytorch-lightning` package, please install it.")
 
 from lightning_graphcore.accelerator import _IPU_AVAILABLE, _POPTORCH_AVAILABLE
 
@@ -137,22 +158,22 @@ class IPUStrategy(ParallelStrategy):
             inference_opts = self.inference_opts
             optimizer = self.lightning_module.trainer.optimizers[0]
             model = poptorch.trainingModel(model=self.model, options=training_opts, optimizer=optimizer)
-            self.poptorch_models[RunningStage.TRAINING] = model  # type: ignore[index]
+            self.poptorch_models[RunningStage.TRAINING] = model
 
             if self.lightning_module.trainer.enable_validation:
                 model = poptorch.inferenceModel(model=self.model, options=inference_opts)
-                self.poptorch_models[RunningStage.VALIDATING] = model  # type: ignore[index]
+                self.poptorch_models[RunningStage.VALIDATING] = model
                 if self.lightning_module.trainer.num_sanity_val_steps > 0:
-                    self.poptorch_models[RunningStage.SANITY_CHECKING] = model  # type: ignore[index]
+                    self.poptorch_models[RunningStage.SANITY_CHECKING] = model
         elif trainer_fn == TrainerFn.VALIDATING:
             model = poptorch.inferenceModel(model=self.model, options=self.inference_opts)
-            self.poptorch_models[RunningStage.VALIDATING] = model  # type: ignore[index]
+            self.poptorch_models[RunningStage.VALIDATING] = model
         elif trainer_fn == TrainerFn.TESTING:
             model = poptorch.inferenceModel(model=self.model, options=self.inference_opts)
-            self.poptorch_models[RunningStage.TESTING] = model  # type: ignore[index]
+            self.poptorch_models[RunningStage.TESTING] = model
         elif trainer_fn == TrainerFn.PREDICTING:
             model = poptorch.inferenceModel(model=self.model, options=self.inference_opts)
-            self.poptorch_models[RunningStage.PREDICTING] = model  # type: ignore[index]
+            self.poptorch_models[RunningStage.PREDICTING] = model
 
     def setup_optimizers(self, trainer: Trainer) -> None:
         super().setup_optimizers(trainer)
@@ -253,7 +274,7 @@ class IPUStrategy(ParallelStrategy):
                 "You have overridden the `LightningModule.optimizer_zero_grad` hook but it will be ignored since"
                 " IPUs handle the zeroing of gradients internally."
             )
-        lightning_module.optimizer_zero_grad = None  # type: ignore[assignment]
+        lightning_module.optimizer_zero_grad = None
 
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         args = self._prepare_input(args)
@@ -263,19 +284,19 @@ class IPUStrategy(ParallelStrategy):
 
     def training_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         with self.precision_plugin.train_step_context():
-            return self._step(RunningStage.TRAINING, *args, **kwargs)  # type: ignore[arg-type]
+            return self._step(RunningStage.TRAINING, *args, **kwargs)
 
     def validation_step(self, *args: Any, **kwargs: Any) -> Optional[STEP_OUTPUT]:
         with self.precision_plugin.val_step_context():
-            return self._step(RunningStage.VALIDATING, *args, **kwargs)  # type: ignore[arg-type]
+            return self._step(RunningStage.VALIDATING, *args, **kwargs)
 
     def test_step(self, *args: Any, **kwargs: Any) -> Optional[STEP_OUTPUT]:
         with self.precision_plugin.test_step_context():
-            return self._step(RunningStage.TESTING, *args, **kwargs)  # type: ignore[arg-type]
+            return self._step(RunningStage.TESTING, *args, **kwargs)
 
     def predict_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         with self.precision_plugin.predict_step_context():
-            return self._step(RunningStage.PREDICTING, *args, **kwargs)  # type: ignore[arg-type]
+            return self._step(RunningStage.PREDICTING, *args, **kwargs)
 
     def teardown(self) -> None:
         if self._update_dataloader_original is not None:
@@ -285,9 +306,7 @@ class IPUStrategy(ParallelStrategy):
         assert self.lightning_module is not None
         if self._optimizer_zero_grad_original is not None:
             # re-enable `optimizer_zero_grad`
-            self.lightning_module.optimizer_zero_grad = (  # type: ignore[method-assign]
-                self._optimizer_zero_grad_original
-            )
+            self.lightning_module.optimizer_zero_grad = self._optimizer_zero_grad_original
 
         for model in self.poptorch_models.values():
             model.destroy()
@@ -316,16 +335,16 @@ class IPUStrategy(ParallelStrategy):
             model.attachToDevice()
 
     def on_train_start(self) -> None:
-        self._load_model(RunningStage.TRAINING)  # type: ignore[arg-type]
+        self._load_model(RunningStage.TRAINING)
 
     def on_validation_start(self) -> None:
-        self._load_model(RunningStage.VALIDATING)  # type: ignore[arg-type]
+        self._load_model(RunningStage.VALIDATING)
 
     def on_test_start(self) -> None:
-        self._load_model(RunningStage.TESTING)  # type: ignore[arg-type]
+        self._load_model(RunningStage.TESTING)
 
     def on_predict_start(self) -> None:
-        self._load_model(RunningStage.PREDICTING)  # type: ignore[arg-type]
+        self._load_model(RunningStage.PREDICTING)
 
     def on_train_end(self) -> None:
         self._detach_models()
@@ -342,7 +361,7 @@ class IPUStrategy(ParallelStrategy):
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> None:
         # Updates optimizer stats if LR scheduler modified the optimizer state
         optimizer = self.optimizers[0]
-        self.poptorch_models[RunningStage.TRAINING].setOptimizer(optimizer)  # type: ignore[index]
+        self.poptorch_models[RunningStage.TRAINING].setOptimizer(optimizer)
 
     @property
     def root_device(self) -> torch.device:  # type: ignore[empty-body]
