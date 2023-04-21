@@ -1,46 +1,40 @@
-# Creation GPU self-hosted agent pool
+# Creation IPU agent pool
 
-## Prepare the machine
+## Connecting to the IPU instance
 
-This is a slightly modified version of the script from
-https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/docker
+1. You need to get SSH access granted by Graphcore
+1. `ssh jirkab@lr76-4c.usclt-pod1.graphcloud.ai` (set your name obviously)
+1. Try to run [monitor](https://www.docker.com/blog/graphcore-poplar-sdk-container-images-now-available-on-docker-hub/):
+   ```bash
+   docker run --rm \
+       --ulimit memlock=-1:-1 \
+       --net=host \
+       --cap-add=IPC_LOCK \
+       --device=/dev/infiniband \
+       --ipc=host \
+       -v ~/.ipuof.conf.d/:/etc/ipuof.conf.d \
+       -it graphcore/tools gc-info -l
+   ```
 
-```bash
-apt-get update
-apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    jq \
-    git \
-    iputils-ping \
-    libcurl4 \
-    libunwind8 \
-    netcat \
-    libssl1.0
+## Starting the Azure runners/pool
 
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-mkdir /azp
-```
-
-## Stating the agents
-
-```bash
-export TARGETARCH=linux-x64
-export AZP_URL="https://dev.azure.com/Lightning-AI"
-export AZP_TOKEN="xxxxxxxxxxxxxxxxxxxxxxxxxx"
-export AZP_POOL="lit-rtx-3090"
-
-for i in {0..7..2}
-do
-     nohup bash .azure/start.sh \
-        "AZP_AGENT_NAME=litGPU-YX_$i,$((i+1))" \
-        "CUDA_VISIBLE_DEVICES=$i,$((i+1))" \
-     > "agent-$i.log" &
-done
-```
-
-## Check running agents
-
-```bash
-ps aux | grep start.sh
-```
+1. [Generate your PAT](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate) with permission to the agent pool
+1. Start a `screen`
+1. Run the docker agent with your account’s `AZP_TOKEN`
+   ```bash
+   docker run -t \
+       -v /dev:/dev \
+       -e AZP_URL="https://dev.azure.com/Lightning-AI" \
+       -e AZP_TOKEN="XXXXXXXXXXXXXXXXXXXXXXXXXXX" \
+       -e AZP_AGENT_NAME="lr76-4c-poplar-1-1" \
+       -e AZP_POOL="graphcore-ipus" \
+       -v /mnt/public:/mnt/public:ro \
+     -v /opt/poplar:/opt/poplar:ro \
+     --ulimit memlock=-1:-1 \
+       --net=host \
+       --cap-add=IPC_LOCK \
+       --device=/dev/infiniband \
+       --ipc=host \
+       -v ~/.ipuof.conf.d/:/etc/ipuof.conf.d \
+       pytorchlightning/pytorch_lightning:ipu-ci-runner-py3.8
+   ```

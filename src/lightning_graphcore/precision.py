@@ -29,7 +29,7 @@ warning_cache = WarningCache()
 _PRECISION_INPUT = Literal["32-true", "16-mixed"]
 
 
-class PrecisionIPU(PrecisionPlugin):
+class IPUPrecision(PrecisionPlugin):
     """Precision plugin for IPU integration.
 
     .. warning::  This is an :ref:`experimental <versioning:Experimental API>` feature.

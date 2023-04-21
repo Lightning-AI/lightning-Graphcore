@@ -44,19 +44,19 @@ else:
     poptorch = None
 
 
-class StrategyIPU(ParallelStrategy):
+class IPUStrategy(ParallelStrategy):
     """Plugin for training on IPU devices.
 
     Args:
         device_iterations: Number of iterations to run on device at once before returning to host.
-        This can be used as an optimization to speed up training.
-        https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html
+            This can be used as an optimization to speed up training.
+            https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html
         autoreport: Enable auto-reporting for IPUs using PopVision
-        https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html
+            https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html
         autoreport_dir: Optional directory to store autoReport output.
         training_opts: Optional ``poptorch.Options`` to override the default created options for training.
         inference_opts: Optional ``poptorch.Options`` to override the default
-        created options for validation/testing and predicting.
+            created options for validation/testing and predicting.
 
     .. warning::  This is an :ref:`experimental <versioning:Experimental API>` feature.
     """
