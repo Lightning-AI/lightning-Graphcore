@@ -1,12 +1,12 @@
-# Lightning Sample project/package
+# Lightning ⚡ GraphCore
 
 **Audience:** Users looking to save money and run large models faster using single or multiple IPU devices.
 
 [![lightning](https://img.shields.io/badge/-Lightning_2.0+-792ee5?logo=pytorchlightning&logoColor=white)](https://lightning.ai/)
 [![Build Status](https://dev.azure.com/Lightning-AI/compatibility/_apis/build/status%2Faccelerators%2FLightning-AI.lightning-Graphcore?branchName=main)](https://dev.azure.com/Lightning-AI/compatibility/_build/latest?definitionId=48&branchName=main)
 [![General checks](https://github.com/Lightning-AI/lightning-graphcore/actions/workflows/ci-checks.yml/badge.svg?event=push)](https://github.com/Lightning-AI/lightning-graphcore/actions/workflows/ci-checks.yml)
-[![Documentation Status](https://readthedocs.org/projects/lightning-graphcore/badge/?version=latest)](https://lightning-graphcore.readthedocs.io/en/latest/?badge=latest)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Lightning-AI/lightning-graphcore/main.svg?badge_token=mqheL1-cTn-280Vx4cJUdg)](https://results.pre-commit.ci/latest/github/Lightning-AI/lightning-graphcore/main?badge_token=mqheL1-cTn-280Vx4cJUdg)
+[![Deploy Docs](https://github.com/Lightning-AI/lightning-Graphcore/actions/workflows/docs-deploy.yml/badge.svg?event=push)](https://lightning-ai.github.io/lightning-Graphcore/)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Lightning-AI/lightning-Graphcore/main.svg)](https://results.pre-commit.ci/latest/github/Lightning-AI/lightning-Graphcore/main)
 
 ## What is an IPU?
 
