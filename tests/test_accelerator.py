@@ -73,15 +73,7 @@ def test_no_warning_strategy(tmpdir):
 
 @pytest.mark.parametrize(
     "devices",
-    [
-        1,
-        pytest.param(
-            4,
-            marks=pytest.mark.xfail(
-                AssertionError, reason="Invalid batch dimension: In the input torch.Size([1, 32]), ..."
-            ),
-        ),
-    ],
+    [1, 4],
 )
 def test_all_stages(tmpdir, devices):
     model = IPUModel()
@@ -387,7 +379,6 @@ def test_manual_poptorch_opts(tmpdir):
     assert not isinstance(dataloader.sampler, DistributedSampler)
 
 
-@pytest.mark.xfail(AssertionError, reason="Invalid batch dimension: In the input torch.Size([1, 32]), ...")
 def test_manual_poptorch_opts_custom(tmpdir):
     """Ensure if the user passes manual poptorch Options with custom parameters set.
 

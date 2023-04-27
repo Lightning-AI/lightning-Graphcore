@@ -15,7 +15,6 @@ import json
 import os
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-import pytorch_lightning as pl
 import torch
 from lightning_utilities.core.apply_func import apply_to_collection
 from lightning_utilities.core.imports import package_available
@@ -23,6 +22,7 @@ from torch import Tensor
 from torch.utils.data import DataLoader, Sampler
 
 if package_available("lightning"):
+    import lightning.pytorch as pl
     from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
     from lightning.fabric.utilities.cloud_io import get_filesystem
     from lightning.pytorch import Trainer
@@ -39,6 +39,7 @@ if package_available("lightning"):
     from lightning.pytorch.utilities.model_helpers import is_overridden
     from lightning.pytorch.utilities.types import STEP_OUTPUT
 elif package_available("pytorch_lightning"):
+    import pytorch_lightning as pl
     from lightning_fabric.plugins import CheckpointIO, ClusterEnvironment
     from lightning_fabric.utilities.cloud_io import get_filesystem
     from pytorch_lightning import Trainer
