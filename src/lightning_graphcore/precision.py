@@ -15,8 +15,10 @@ from typing import Any, Callable, Literal, Union, cast
 
 from lightning_utilities.core.imports import package_available
 from torch import Tensor
+from torch.nn import Module
 from torch.optim import LBFGS, Optimizer
 from typing_extensions import get_args
+from typing import List, Tuple
 
 if package_available("lightning"):
     from lightning.fabric.utilities.types import Optimizable
@@ -39,7 +41,7 @@ else:
 
 warning_cache = WarningCache()
 
-_PRECISION_INPUT = Literal["32-true", "16-mixed"]
+_PRECISION_INPUT = Literal["32-true", "16-mixed", "16-true"]
 
 
 class IPUPrecision(PrecisionPlugin):
@@ -52,7 +54,7 @@ class IPUPrecision(PrecisionPlugin):
             If the precision is neither 16-mixed nor 32-true.
     """
 
-    def __init__(self, precision: Literal["32-true", "16-mixed"]) -> None:
+    def __init__(self, precision: Literal["32-true", "16-mixed", "16-true"]) -> None:
         supported_precision = get_args(_PRECISION_INPUT)
         if precision not in supported_precision:
             raise ValueError(
@@ -60,6 +62,18 @@ class IPUPrecision(PrecisionPlugin):
                 f" `precision` must be one of: {supported_precision}."
             )
         self.precision = cast(_PRECISION_INPUT, str(precision))
+
+    def convert_module(self, module: Module) -> Module:
+        if self.precision == "16-true":
+            module = module.half()
+        return super().convert_module(module)
+
+    def connect(
+        self, model: Module, optimizers: List[Optimizer], lr_schedulers: List[Any]
+    ) -> Tuple[Module, List[Optimizer], List[Any]]:
+        """Connects this plugin to the accelerator and the training process."""
+        model = self.convert_module(model)
+        return super().connect(model, optimizers, lr_schedulers)
 
     def backward(
         self,
