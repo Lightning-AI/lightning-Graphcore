@@ -40,10 +40,6 @@ class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
             )
         self._forward_module = forward_module
 
-        # set the parameters_to_ignore from LightningModule.
-        _ddp_params_and_buffers_to_ignore = getattr(self._forward_module, "_ddp_params_and_buffers_to_ignore", [])
-        self._ddp_params_and_buffers_to_ignore = [f"module.{p}" for p in _ddp_params_and_buffers_to_ignore]
-
     @property
     def lightning_module(self) -> "pl.LightningModule":
         if isinstance(self._forward_module, pl.LightningModule):
@@ -56,15 +52,7 @@ class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
 
         if trainer is not None:
             if trainer.training:
-                output = self._forward_module.training_step(*inputs, **kwargs)
-                # In manual_optimization, we need to prevent DDP reducer as
-                # it is done manually in `LightningModule.manual_backward`
-                # `require_backward_grad_sync` will be reset in the
-                # ddp_strategy `post_training_step` hook
-                if not pl_module.automatic_optimization:
-                    assert trainer.model is not None
-                    trainer.model.require_backward_grad_sync = False  # type: ignore[assignment]
-                return output
+                return self._forward_module.training_step(*inputs, **kwargs)
             if trainer.testing:
                 return self._forward_module.test_step(*inputs, **kwargs)
             if trainer.sanity_checking or trainer.validating:
