@@ -13,19 +13,19 @@
 # limitations under the License.
 from typing import Any, Union
 
-import torch
-
 import lightning.pytorch as pl
+import torch
 from lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
 from lightning.pytorch.overrides.base import _LightningPrecisionModuleWrapperBase
 
 
 class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
-
     def __init__(self, forward_module: Union["pl.LightningModule", _LightningPrecisionModuleWrapperBase]) -> None:
         """Wraps the user's LightningModule and redirects the forward call to the appropriate method, either
         ``training_step``, ``validation_step``, ``test_step``, or ``predict_step``.
+
         Inheriting classes may also modify the inputs or outputs of forward.
+
         Args:
             forward_module: The module to wrap. If it's not a LightningModule, it must have an attribute ``.module``
                 pointing to a LightningModule reference.
