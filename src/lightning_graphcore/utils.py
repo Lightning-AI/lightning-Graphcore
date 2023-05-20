@@ -21,8 +21,7 @@ from lightning.pytorch.overrides.base import _LightningPrecisionModuleWrapperBas
 
 class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
     def __init__(self, forward_module: Union["pl.LightningModule", _LightningPrecisionModuleWrapperBase]) -> None:
-        """Wrap the user's LightningModule and redirect the forward call to the appropriate method, either
-        ``training_step``, ``validation_step``, ``test_step``, or ``predict_step``.
+        """Wrap the user's LightningModule and redirect the forward call to the appropriate `*_step()` methods.
 
         Inheriting classes may also modify the inputs or outputs of forward.
 
