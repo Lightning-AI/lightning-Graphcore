@@ -11,13 +11,16 @@ elif package_available("pytorch_lightning"):
     from pytorch_lightning.demos.boring_classes import BoringModel
 
 
-@pytest.mark.parametrize("stage, step_method", [
-    ("training", "training_step"),
-    ("validating", "validation_step"),
-    ("sanity_checking", "validation_step"),
-    ("testing", "test_step"),
-    ("predicting", "predict_step"),
-])
+@pytest.mark.parametrize(
+    ("stage", "step_method"),
+    [
+        ("training", "training_step"),
+        ("validating", "validation_step"),
+        ("sanity_checking", "validation_step"),
+        ("testing", "test_step"),
+        ("predicting", "predict_step"),
+    ],
+)
 def test_wrapper(stage, step_method):
     trainer = Mock()
     model = Mock(spec=BoringModel)
