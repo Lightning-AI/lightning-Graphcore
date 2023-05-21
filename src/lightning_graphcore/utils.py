@@ -14,9 +14,8 @@
 from typing import Any, Union
 
 import lightning.pytorch as pl
-from lightning_utilities.core.imports import package_available
-
 import torch
+from lightning_utilities.core.imports import package_available
 
 if package_available("lightning"):
     from lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
