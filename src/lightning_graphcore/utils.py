@@ -14,9 +14,16 @@
 from typing import Any, Union
 
 import lightning.pytorch as pl
+from lightning_utilities.core.imports import package_available
+
 import torch
-from lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
-from lightning.pytorch.overrides.base import _LightningPrecisionModuleWrapperBase
+
+if package_available("lightning"):
+    from lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
+    from lightning.pytorch.overrides.base import _LightningPrecisionModuleWrapperBase
+elif package_available("pytorch_lightning"):
+    from pytorch_lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
+    from pytorch_lightning.overrides.base import _LightningPrecisionModuleWrapperBase
 
 
 class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
