@@ -13,20 +13,21 @@
 # limitations under the License.
 from typing import Any, Union
 
-import lightning.pytorch as pl
 import torch
 from lightning_utilities.core.imports import package_available
 
 if package_available("lightning"):
     from lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
+    from lightning.pytorch import LightningModule
     from lightning.pytorch.overrides.base import _LightningPrecisionModuleWrapperBase
 elif package_available("pytorch_lightning"):
+    from pytorch_lightning import LightningModule
     from pytorch_lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
     from pytorch_lightning.overrides.base import _LightningPrecisionModuleWrapperBase
 
 
 class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
-    def __init__(self, forward_module: Union["pl.LightningModule", _LightningPrecisionModuleWrapperBase]) -> None:
+    def __init__(self, forward_module: Union[LightningModule, _LightningPrecisionModuleWrapperBase]) -> None:
         """Wrap the user's LightningModule and redirect the forward call to the appropriate `*_step()` methods.
 
         Inheriting classes may also modify the inputs or outputs of forward.
@@ -36,8 +37,8 @@ class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
                 pointing to a LightningModule reference.
         """
         super().__init__()
-        if not isinstance(forward_module, pl.LightningModule) and (
-            not isinstance(getattr(forward_module, "module", None), pl.LightningModule)
+        if not isinstance(forward_module, LightningModule) and (
+            not isinstance(getattr(forward_module, "module", None), LightningModule)
         ):
             raise ValueError(
                 "`forward_module` must be a `LightningModule` instance or have an attribute `.module` pointing to one,"
@@ -46,8 +47,8 @@ class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
         self._forward_module = forward_module
 
     @property
-    def lightning_module(self) -> "pl.LightningModule":
-        if isinstance(self._forward_module, pl.LightningModule):
+    def lightning_module(self) -> LightningModule:
+        if isinstance(self._forward_module, LightningModule):
             return self._forward_module
         return self._forward_module.module
 

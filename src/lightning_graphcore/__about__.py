@@ -1,4 +1,4 @@
-__version__ = "0.1.0.rc1"
+__version__ = "0.1.0.rc2"
 __author__ = "Lightning-AI et al."
 __author_email__ = "name@lightning.ai"
 __license__ = "Apache-2.0"
