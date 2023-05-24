@@ -21,8 +21,8 @@ if package_available("lightning"):
     from lightning.pytorch import LightningModule
     from lightning.pytorch.overrides.base import _LightningPrecisionModuleWrapperBase
 elif package_available("pytorch_lightning"):
+    from lightning_fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
     from pytorch_lightning import LightningModule
-    from pytorch_lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
     from pytorch_lightning.overrides.base import _LightningPrecisionModuleWrapperBase
 
 
