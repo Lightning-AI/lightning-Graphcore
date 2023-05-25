@@ -11,14 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Callable, Literal, Union, cast
+from typing import Any, Callable, List, Literal, Tuple, Union, cast
 
 from lightning_utilities.core.imports import package_available
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import LBFGS, Optimizer
 from typing_extensions import get_args
-from typing import List, Tuple
 
 if package_available("lightning"):
     from lightning.fabric.utilities.types import Optimizable
