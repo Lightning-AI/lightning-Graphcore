@@ -394,7 +394,6 @@ autosectionlabel_prefix_document = True
 doctest_test_doctest_blocks = ""
 doctest_global_setup = """
 
-import importlib
 import os
 import torch
 
