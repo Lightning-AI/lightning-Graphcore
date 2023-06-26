@@ -14,7 +14,7 @@ on:
       - "!*.md"
       - "!**/*.md"
   schedule:
-    - cron: "0 0 1/7 * *"  # at the end of every day
+    - cron: "0 0 1/7 * *"  # every seven days at midnight
   release:
     types: [published]
 
@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: ${{ ! (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
 
 env:
-  PUSH_DOCKERHUB: true # fixme: ${{ github.event_name == 'schedule' }}
+  PUSH_DOCKERHUB: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
 jobs:
 
@@ -57,7 +57,7 @@ jobs:
           tags: pytorchlightning/lightning-graphcore:base-ipu-py${{ matrix.python_version }}
         timeout-minutes: 40
 
-      # TODO: note that chnage in tha base image is not picked in the consecutive build as PR does not push
+      # TODO: note that change in tha base image is not picked in the consecutive build as PR does not push
 
       - uses: docker/build-push-action@v4
         with:

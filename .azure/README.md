@@ -36,5 +36,5 @@
        --device=/dev/infiniband \
        --ipc=host \
        -v ~/.ipuof.conf.d/:/etc/ipuof.conf.d \
-       pytorchlightning/pytorch_lightning:ipu-ci-runner-py3.8
+       pytorchlightning/lightning-graphcore:ipu-ci-runner-py3.8
    ```
