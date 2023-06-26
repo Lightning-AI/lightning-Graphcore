@@ -1,0 +1,70 @@
+name: Docker
+
+on:
+  push:
+    branches: [main, "release/*"]
+  pull_request:
+    branches: [main, "release/*"]
+    types: [opened, reopened, ready_for_review, synchronize]  # added `ready_for_review` since draft is skipped
+    paths:
+      - ".github/workflows/ci-dockers.yml"
+      - "dockers/**"
+      - "_requirements/*.txt"
+      - "setup.py"
+      - "!*.md"
+      - "!**/*.md"
+  schedule:
+    - cron: "0 0 1/7 * *"  # every seven days at midnight
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ ! (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+
+env:
+  PUSH_DOCKERHUB: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+
+jobs:
+
+  build-ci:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ToDo: the torch version does not have any effect
+          # the config used in 'dockers/ci-runner-ipu/Dockerfile'
+          - { python_version: "3.8", pytorch_version: "1.13" }
+          - { python_version: "3.9", pytorch_version: "1.13" }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/login-action@v2
+        if: env.PUSH_DOCKERHUB == 'true'
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - uses: docker/build-push-action@v4
+        with:
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python_version }}
+            PYTORCH_VERSION=${{ matrix.pytorch_version }}
+          file: dockers/base-ipu/Dockerfile
+          push: ${{ env.PUSH_DOCKERHUB }}
+          # add torch version when particular package will be installed
+          tags: pytorchlightning/lightning-graphcore:base-ipu-py${{ matrix.python_version }}
+        timeout-minutes: 40
+
+      # TODO: note that change in tha base image is not picked in the consecutive build as PR does not push
+
+      - uses: docker/build-push-action@v4
+        with:
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python_version }}
+            PYTORCH_VERSION=${{ matrix.pytorch_version }}
+          file: dockers/ci-runner-ipu/Dockerfile
+          push: ${{ env.PUSH_DOCKERHUB }}
+          tags: pytorchlightning/lightning-graphcore:ipu-ci-runner-py${{ matrix.python_version }}
+        timeout-minutes: 15
