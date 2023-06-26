@@ -14,7 +14,7 @@ on:
       - "!*.md"
       - "!**/*.md"
   schedule:
-    - cron: "0 0 0 * *"  # at the end of every day
+    - cron: "0 0 1/7 * *"  # at the end of every day
   release:
     types: [published]
 
