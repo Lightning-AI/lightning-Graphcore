@@ -23,7 +23,7 @@ ______________________________________________________________________
 ## Installation
 
 ```bash
-pip install -U lightning-graphcore
+pip install -U lightning-graphcore[lightning]
 ```
 
 ## Run on IPU
