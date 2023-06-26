@@ -73,15 +73,7 @@ def test_no_warning_strategy(tmpdir):
 
 @pytest.mark.parametrize(
     "devices",
-    [
-        1,
-        pytest.param(
-            4,
-            marks=pytest.mark.xfail(
-                AssertionError, reason="Invalid batch dimension: In the input torch.Size([1, 32]), ..."
-            ),
-        ),
-    ],
+    [1, 4],
 )
 def test_all_stages(tmpdir, devices):
     model = IPUModel()
@@ -202,6 +194,46 @@ def test_pure_half_precision(tmpdir):
     assert all(val.dtype is torch.half for val in new_data), "".join(
         [f"{dtype}: {val.dtype}" for dtype, val in zip(changed_dtypes, new_data)]
     )
+
+    not_changed_dtypes = [torch.uint8, torch.int8, torch.int32, torch.int64]
+    data = [torch.zeros((1), dtype=dtype) for dtype in not_changed_dtypes]
+    new_data = trainer.strategy.batch_to_device(data)
+    assert all(val.dtype is dtype for val, dtype in zip(new_data, not_changed_dtypes)), "".join(
+        [f"{dtype}: {val.dtype}" for dtype, val in zip(not_changed_dtypes, new_data)]
+    )
+
+    with pytest.raises(SystemExit):
+        trainer.fit(model)
+
+
+def test_true_half_precision(tmpdir):
+    class TestCallback(Callback):
+        def on_train_start(self, trainer: Trainer, pl_module: LightningModule) -> None:
+            assert trainer.strategy.precision_plugin.precision == "16-true"
+            for param in trainer.strategy.model.parameters():
+                assert param.dtype == torch.float16
+            raise SystemExit
+
+    model = IPUModel()
+    trainer = Trainer(
+        default_root_dir=tmpdir,
+        fast_dev_run=True,
+        strategy=IPUStrategy(accelerator=IPUAccelerator(), precision_plugin=IPUPrecision("16-true")),
+        devices=1,
+        callbacks=TestCallback(),
+    )
+
+    assert isinstance(trainer.strategy, IPUStrategy)
+    assert isinstance(trainer.strategy.precision_plugin, IPUPrecision)
+    assert trainer.strategy.precision_plugin.precision == "16-true"
+
+    # TODO uncomment
+    # changed_dtypes = [torch.float, torch.float64]
+    # data = [torch.zeros((1), dtype=dtype) for dtype in changed_dtypes]
+    # new_data = trainer.strategy.batch_to_device(data)
+    # assert all(val.dtype is torch.half for val in new_data), "".join(
+    #     [f"{dtype}: {val.dtype}" for dtype, val in zip(changed_dtypes, new_data)]
+    # )
 
     not_changed_dtypes = [torch.uint8, torch.int8, torch.int32, torch.int64]
     data = [torch.zeros((1), dtype=dtype) for dtype in not_changed_dtypes]
@@ -387,7 +419,6 @@ def test_manual_poptorch_opts(tmpdir):
     assert not isinstance(dataloader.sampler, DistributedSampler)
 
 
-@pytest.mark.xfail(AssertionError, reason="Invalid batch dimension: In the input torch.Size([1, 32]), ...")
 def test_manual_poptorch_opts_custom(tmpdir):
     """Ensure if the user passes manual poptorch Options with custom parameters set.
 
