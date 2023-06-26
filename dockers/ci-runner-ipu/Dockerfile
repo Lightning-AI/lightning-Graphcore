@@ -15,7 +15,7 @@
 ARG PYTHON_VERSION=3.9
 ARG PYTORCH_VERSION=1.13
 
-FROM pytorchlightning/pytorch_lightning:base-ipu-py${PYTHON_VERSION}-torch${PYTORCH_VERSION}
+FROM pytorchlightning/lightning-graphcore:base-ipu-py${PYTHON_VERSION}-torch${PYTORCH_VERSION}
 
 LABEL maintainer="PyTorchLightning <https://github.com/PyTorchLightning>"
 
