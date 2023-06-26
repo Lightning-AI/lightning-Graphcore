@@ -26,7 +26,7 @@ WORKDIR /azp
 COPY ./.azure/start.sh /usr/local/bin/
 
 RUN curl -o /usr/local/bin/installdependencies.sh \
-      "https://raw.githubusercontent.com/microsoft/azure-pipelines-agent/d2acd5f77c6b3914cdb6ed0e5fbea672929c7da9/src/Misc/layoutbin/installdependencies.sh" && \
+      "https://raw.githubusercontent.com/microsoft/azure-pipelines-agent/v3.220.5/src/Misc/layoutbin/installdependencies.sh" && \
     chmod +x /usr/local/bin/installdependencies.sh && \
     chmod +x /usr/local/bin/start.sh && \
     /usr/local/bin/installdependencies.sh
