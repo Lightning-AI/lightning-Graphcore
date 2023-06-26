@@ -14,7 +14,7 @@ on:
       - "!*.md"
       - "!**/*.md"
   schedule:
-    - cron: "0 0 * * *"  # at the end of every day
+    - cron: "0 0 0 * *"  # at the end of every day
   release:
     types: [published]
 
@@ -23,17 +23,18 @@ concurrency:
   cancel-in-progress: ${{ ! (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
 
 env:
-  PUSH_NIGHTLY: true # fixme: ${{ github.event_name == 'schedule' }}
+  PUSH_DOCKERHUB: true # fixme: ${{ github.event_name == 'schedule' }}
 
 jobs:
 
   build-ci:
     if: github.event.pull_request.draft == false
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
+          # ToDo: the torch version does not have any effect
           # the config used in 'dockers/ci-runner-ipu/Dockerfile'
           - { python_version: "3.8", pytorch_version: "1.13" }
           - { python_version: "3.9", pytorch_version: "1.13" }
@@ -41,7 +42,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v2
       - uses: docker/login-action@v2
-        if: env.PUSH_NIGHTLY == 'true'
+        if: env.PUSH_DOCKERHUB == 'true'
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -51,9 +52,12 @@ jobs:
             PYTHON_VERSION=${{ matrix.python_version }}
             PYTORCH_VERSION=${{ matrix.pytorch_version }}
           file: dockers/base-ipu/Dockerfile
-          push: ${{ env.PUSH_NIGHTLY }}
-          tags: pytorchlightning/lightning-graphcore:base-ipu-py${{ matrix.python_version }}-torch${{ matrix.pytorch_version }}
+          push: ${{ env.PUSH_DOCKERHUB }}
+          # add torch version when particular package will be installed
+          tags: pytorchlightning/lightning-graphcore:base-ipu-py${{ matrix.python_version }}
         timeout-minutes: 40
+
+      # TODO: note that chnage in tha base image is not picked in the consecutive build as PR does not push
 
       - uses: docker/build-push-action@v4
         with:
@@ -61,6 +65,6 @@ jobs:
             PYTHON_VERSION=${{ matrix.python_version }}
             PYTORCH_VERSION=${{ matrix.pytorch_version }}
           file: dockers/ci-runner-ipu/Dockerfile
-          push: ${{ env.PUSH_NIGHTLY }}
+          push: ${{ env.PUSH_DOCKERHUB }}
           tags: pytorchlightning/lightning-graphcore:ipu-ci-runner-py${{ matrix.python_version }}
         timeout-minutes: 15
