@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: ${{ ! (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
 
 env:
-  PUSH_NIGHTLY: ${{ github.event_name == 'schedule' }}
+  PUSH_NIGHTLY: true # fixme: ${{ github.event_name == 'schedule' }}
 
 jobs:
 
