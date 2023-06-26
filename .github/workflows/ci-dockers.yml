@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: ${{ ! (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
 
 env:
-  PUSH_NIGHTLY: true # fixme: ${{ github.event_name == 'schedule' }}
+  PUSH_NIGHTLY: ${{ github.event_name == 'schedule' }}
 
 jobs:
 
@@ -53,7 +53,7 @@ jobs:
           file: dockers/base-ipu/Dockerfile
           push: ${{ env.PUSH_NIGHTLY }}
           tags: pytorchlightning/lightning-graphcore:base-ipu-py${{ matrix.python_version }}-torch${{ matrix.pytorch_version }}
-        timeout-minutes: 100
+        timeout-minutes: 40
 
       - uses: docker/build-push-action@v4
         with:
@@ -63,4 +63,4 @@ jobs:
           file: dockers/ci-runner-ipu/Dockerfile
           push: ${{ env.PUSH_NIGHTLY }}
           tags: pytorchlightning/lightning-graphcore:ipu-ci-runner-py${{ matrix.python_version }}
-        timeout-minutes: 10
+        timeout-minutes: 15

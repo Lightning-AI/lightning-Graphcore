@@ -55,17 +55,9 @@ ENV \
     PATH="/root/miniconda3/bin:$PATH" \
     LD_LIBRARY_PATH="/root/miniconda3/lib:$LD_LIBRARY_PATH"
 
-COPY environment.yml environment.yml
-
-RUN conda create -y --name $CONDA_ENV && \
+RUN conda create -y --name $CONDA_ENV "python=${PYTHON_VERSION}" && \
     conda init bash && \
-    python -c "import re ; fname = 'environment.yml' ; req = re.sub(r'python>=[\d\.]+', 'python=${PYTHON_VERSION}', open(fname).read()) ; open(fname, 'w').write(req)" && \
-    # drop unnecessary packages and channels
-    python -c "fname = 'environment.yml' ; req = open(fname).readlines() ; open(fname, 'w').writelines([ln for ln in req if not any(n in ln for n in ['pytorch>', 'nvidia', 'torchvision'])])" && \
-    cat environment.yml && \
-    conda env update --file environment.yml && \
-    conda clean -ya && \
-    rm environment.yml
+    conda clean -ya
 
 ENV \
     PATH="/root/miniconda3/envs/${CONDA_ENV}/bin:$PATH" \
@@ -74,25 +66,11 @@ ENV \
     CONDA_DEFAULT_ENV=${CONDA_ENV} \
     MKL_THREADING_LAYER="GNU"
 
-# Disable cache
-RUN pip --version && \
-    pip config set global.cache-dir false
-
-# Get package
-COPY ./ ./lightning/
-
-RUN \
-    python --version && \
-    cd lightning && \
-    # set particular PyTorch version \
-    for fpath in `ls requirements/**/*.txt`; do \
-      python requirements/pytorch/adjust-versions.py $fpath ${PYTORCH_VERSION}; \
-    done && \
-    # install PL dependencies
-    pip install --requirement requirements/pytorch/devel.txt && \
-    cd .. && \
-    rm -rf lightning && \
-    rm -rf /root/.cache \
+# ToDo: install follwong packages
+#RUN \
+#    tar -xzf /opt/poplar/${{ variables.poplar_sdk }}.tar.gz && \
+#    pip debug --verbose && \
+#    pip install ${{ variables.poplar_sdk }}/poptorch-*ubuntu*.whl
 
 RUN \
     # Show what we have
