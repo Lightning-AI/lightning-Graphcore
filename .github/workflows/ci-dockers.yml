@@ -61,5 +61,5 @@ jobs:
             PYTORCH_VERSION=${{ matrix.pytorch_version }}
           file: dockers/ci-runner-ipu/Dockerfile
           push: ${{ env.PUSH_NIGHTLY }}
-          tags: pytorchlightning/pytorch_lightning:ipu-ci-runner-py${{ matrix.python_version }}
+          tags: pytorchlightning/lightning-graphcore:ipu-ci-runner-py${{ matrix.python_version }}
         timeout-minutes: 10
