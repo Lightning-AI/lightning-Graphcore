@@ -233,9 +233,7 @@ class IPUStrategy(ParallelStrategy):
             dataloader, sampler, mode, self.replication_factor > 1
         )
         opts = self.training_opts if mode == RunningStage.TRAINING else self.inference_opts
-        return _reinstantiate_wrapped_cls(
-            dataloader, opts, *dl_args, explicit_cls=poptorch.DataLoader, **dl_kwargs
-        )
+        return _reinstantiate_wrapped_cls(dataloader, opts, *dl_args, explicit_cls=poptorch.DataLoader, **dl_kwargs)
 
     @property
     def _n_replicate(self) -> int:
