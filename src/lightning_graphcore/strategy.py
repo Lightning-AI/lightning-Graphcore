@@ -30,7 +30,6 @@ if package_available("lightning"):
     from lightning.pytorch.plugins.precision import PrecisionPlugin
     from lightning.pytorch.strategies.parallel import ParallelStrategy
     from lightning.pytorch.strategies.strategy import TBroadcast
-    from lightning.pytorch.strategies.utils import _fp_to_half
     from lightning.pytorch.trainer.states import RunningStage, TrainerFn
     from lightning.pytorch.utilities import rank_zero_warn
     from lightning.pytorch.utilities.data import _get_dataloader_init_args_and_kwargs, _reinstantiate_wrapped_cls
@@ -46,7 +45,6 @@ elif package_available("pytorch_lightning"):
     from pytorch_lightning.plugins.precision import PrecisionPlugin
     from pytorch_lightning.strategies.parallel import ParallelStrategy
     from pytorch_lightning.strategies.strategy import TBroadcast
-    from pytorch_lightning.strategies.utils import _fp_to_half
     from pytorch_lightning.trainer.states import RunningStage, TrainerFn
     from pytorch_lightning.utilities import rank_zero_warn
     from pytorch_lightning.utilities.data import _get_dataloader_init_args_and_kwargs, _reinstantiate_wrapped_cls
@@ -57,7 +55,7 @@ else:
     raise ModuleNotFoundError("You are missing `lightning` or `pytorch-lightning` package, please install it.")
 
 from lightning_graphcore.accelerator import _IPU_AVAILABLE, _POPTORCH_AVAILABLE
-from lightning_graphcore.utils import _LightningModuleWrapperBase
+from lightning_graphcore.utils import _fp_to_half, _LightningModuleWrapperBase
 
 if _POPTORCH_AVAILABLE:
     import poptorch
