@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Union
+from typing import Any, Union, Literal
 
 import torch
 from lightning_utilities.core.imports import package_available
+from torch import Tensor
 
 if package_available("lightning"):
     from lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
@@ -66,3 +67,23 @@ class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
             if trainer.predicting:
                 return self._forward_module.predict_step(*inputs, **kwargs)
         return self._forward_module(*inputs, **kwargs)
+
+
+def _fp_to_half(
+    tensor: Tensor,
+    precision: Literal[
+        "64-true",
+        "32-true",
+        "16-mixed",
+        "bf16-mixed",
+    ],
+) -> Tensor:
+    if str(precision) == "16-mixed":
+        return _convert_fp_tensor(tensor, torch.half)
+    if precision == "bf16-mixed":
+        return _convert_fp_tensor(tensor, torch.bfloat16)
+    return tensor
+
+
+def _convert_fp_tensor(tensor: Tensor, dst_type: Union[str, torch.dtype]) -> Tensor:
+    return tensor.to(dst_type) if torch.is_floating_point(tensor) else tensor
