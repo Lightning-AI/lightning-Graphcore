@@ -55,7 +55,7 @@ else:
     raise ModuleNotFoundError("You are missing `lightning` or `pytorch-lightning` package, please install it.")
 
 from lightning_graphcore.accelerator import _IPU_AVAILABLE, _POPTORCH_AVAILABLE
-from lightning_graphcore.utils import _LightningModuleWrapperBase, _fp_to_half
+from lightning_graphcore.utils import _fp_to_half, _LightningModuleWrapperBase
 
 if _POPTORCH_AVAILABLE:
     import poptorch
