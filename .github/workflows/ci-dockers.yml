@@ -46,7 +46,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - uses: docker/build-push-action@v4
+      - uses: docker/build-push-action@v5
         with:
           build-args: |
             PYTHON_VERSION=${{ matrix.python_version }}
@@ -59,7 +59,7 @@ jobs:
 
       # TODO: note that change in tha base image is not picked in the consecutive build as PR does not push
 
-      - uses: docker/build-push-action@v4
+      - uses: docker/build-push-action@v5
         with:
           build-args: |
             PYTHON_VERSION=${{ matrix.python_version }}
