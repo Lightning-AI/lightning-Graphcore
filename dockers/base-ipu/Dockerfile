@@ -54,7 +54,7 @@ RUN \
     python${PYTHON_VERSION} get-pip.py && \
     rm get-pip.py
 
-# ToDo: install follwong packages, then it could be skipped from the Azure pipeline
+# ToDo: install following packages, then it could be skipped from the Azure pipeline
 #RUN \
 #    tar -xzf /opt/poplar/${{ variables.poplar_sdk }}.tar.gz && \
 #    pip debug --verbose && \

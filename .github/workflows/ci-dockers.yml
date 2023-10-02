@@ -57,7 +57,7 @@ jobs:
           tags: pytorchlightning/lightning-graphcore:base-ipu-py${{ matrix.python_version }}
         timeout-minutes: 40
 
-      # TODO: note that change in tha base image is not picked in the consecutive build as PR does not push
+      # TODO: note that change in the base image is not picked in the consecutive build as PR does not push
 
       - uses: docker/build-push-action@v5
         with:
