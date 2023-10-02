@@ -516,7 +516,7 @@ def test_replication_factor(tmpdir):
         assert trainer.strategy.replication_factor == 7
 
 
-@pytest.mark.xfail()  # todo: asser strategy is COU
+@pytest.mark.xfail()  # todo: assert strategy is COU
 def test_default_opts(tmpdir):
     """Ensure default opts are set correctly in the IPUStrategy."""
     model = IPUModel()
