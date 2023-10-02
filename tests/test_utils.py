@@ -1,9 +1,8 @@
 from unittest.mock import Mock
 
 import pytest
-from lightning_utilities.core.imports import package_available
-
 from lightning_graphcore.utils import _LightningModuleWrapperBase
+from lightning_utilities.core.imports import package_available
 
 if package_available("lightning"):
     from lightning.pytorch.demos.boring_classes import BoringModel

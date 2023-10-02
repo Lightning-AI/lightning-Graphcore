@@ -37,6 +37,7 @@ elif package_available("pytorch_lightning"):
 from lightning_graphcore import IPUStrategy
 from lightning_graphcore.accelerator import IPUAccelerator
 from lightning_graphcore.precision import IPUPrecision
+
 from tests.helpers import ClassifDataModule, IPUClassificationModel, IPUModel
 
 
@@ -423,6 +424,7 @@ def test_manual_poptorch_opts_custom(tmpdir):
     """Ensure if the user passes manual poptorch Options with custom parameters set.
 
     We respect them in our poptorch options and the dataloaders.
+
     """
     model = IPUModel()
     training_opts = poptorch.Options()
@@ -474,6 +476,7 @@ def test_replication_factor(tmpdir):
     """Ensure if the user passes manual poptorch Options with custom parameters set.
 
     We set them correctly in the dataloaders.
+
     """
     strategy = IPUStrategy()
     trainer = Trainer(
