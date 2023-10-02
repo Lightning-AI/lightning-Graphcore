@@ -402,3 +402,6 @@ from pytorch_lightning import Trainer, LightningModule
 
 """
 coverage_skip_undoc_in_source = True
+
+# skip false positive linkcheck errors from anchors
+linkcheck_anchors = False
