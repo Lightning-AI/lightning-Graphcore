@@ -272,7 +272,14 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "torch": ("https://pytorch.org/docs/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "lightning": ("https://lightning.ai/docs/pytorch/stable/", None),
 }
+
+nitpicky = True
+nitpick_ignore = [
+    ("py:meth", "lightning.pytorch.core.hooks.ModelHooks.transfer_batch_to_device"),
+    ("py:meth", "lightning.pytorch.core.hooks.ModelHooks.on_after_batch_transfer"),
+]
 
 # -- Options for todo extension ----------------------------------------------
 
