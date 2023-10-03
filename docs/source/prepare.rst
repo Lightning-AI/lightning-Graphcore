@@ -1,4 +1,6 @@
-.. _gpu_prepare:
+:orphan:
+
+.. _ipu_prepare:
 
 ########################################
 Hardware agnostic training (preparation)
