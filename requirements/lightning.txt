@@ -1,3 +1,4 @@
 # this sets the requirements contains if you go with main lightning
 
+# in 2.0.7 we have removed lightning.pytorch.overrides.base._LightningPrecisionModuleWrapperBase
 lightning >=2.0.0, <=2.0.6
