@@ -24,13 +24,13 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: pip-${{ hashFiles('_requirements/docs.txt') }}
+        key: pip-${{ hashFiles('requirements/_docs.txt') }}
         restore-keys: pip-
 
     - name: Install dependencies
       run: |
         pip --version
-        pip install . -U -q -r _requirements/docs.txt -f ${TORCH_URL}
+        pip install . -U -q -r requirements/_docs.txt -f ${TORCH_URL}
         # install Texlive, see https://linuxconfig.org/how-to-install-latex-on-ubuntu-20-04-focal-fossa-linux
         sudo apt-get update --fix-missing
         sudo apt-get install -y texlive-latex-extra dvipng texlive-pictures
