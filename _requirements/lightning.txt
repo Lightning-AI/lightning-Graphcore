@@ -1,3 +1,0 @@
-# this sets the requirements contains if you go with main lightning
-
-lightning >=2.0.0

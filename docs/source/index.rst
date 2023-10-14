@@ -51,6 +51,14 @@ Accelerator: IPU training
     </div>
 
 
+.. toctree::
+   :maxdepth: 1
+   :name: start
+   :caption: Start here
+
+   readme
+
+
 Indices and tables
 ==================
 
