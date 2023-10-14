@@ -7,7 +7,7 @@ on:
     branches: [main, "release/*"]
     types: [opened, reopened, ready_for_review, synchronize]  # added `ready_for_review` since draft is skipped
     paths:
-      - ".github/workflows/ci-dockers.yml"
+      - ".github/workflows/docker-build.yml"
       - "dockers/**"
       - "requirements/*.txt"
       - "setup.py"
