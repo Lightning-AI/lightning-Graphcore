@@ -28,8 +28,7 @@ jobs:
       actions-ref: main
       import-name: "lightning_graphcore"
       artifact-name: dist-packages-${{ github.sha }}
-      # todo: new veersions shall have input flags whci would de-deuplictae this hidden adjustment
-      install-flags: '"pytorch-lightning>=2.0.0, <=2.0.6"'
+      install-extras: "[pytorch-lightning]"
       testing-matrix: |
         {
           "os": ["ubuntu-latest", "macos-latest", "windows-latest"],
