@@ -28,7 +28,7 @@ jobs:
       actions-ref: fix/install-extra
       import-name: "lightning_graphcore"
       artifact-name: dist-packages-${{ github.sha }}
-      install-extras: "[pytorch-lightning]"
+      install-extras: "[lightning]"
       testing-matrix: |
         {
           "os": ["ubuntu-latest", "macos-latest", "windows-latest"],
