@@ -23,9 +23,9 @@ jobs:
       azure-dir: ""
 
   check-package:
-    uses: Lightning-AI/utilities/.github/workflows/check-package.yml@main
+    uses: Lightning-AI/utilities/.github/workflows/check-package.yml@fix/install-extra
     with:
-      actions-ref: main
+      actions-ref: fix/install-extra
       import-name: "lightning_graphcore"
       artifact-name: dist-packages-${{ github.sha }}
       install-extras: "[pytorch-lightning]"
