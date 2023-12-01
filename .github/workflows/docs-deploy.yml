@@ -6,47 +6,32 @@ on:
     branches: [main]
 
 jobs:
+  build-docs:
+    uses: Lightning-AI/utilities/.github/workflows/check-docs.yml@v0.10.0
+    with:
+      requirements-file: "requirements/_docs.txt"
+
   # https://github.com/marketplace/actions/deploy-to-github-pages
-  build-docs-deploy:
+  docs-deploy:
+    needs: build-docs
     runs-on: ubuntu-latest
-    env:
-      TORCH_URL: "https://download.pytorch.org/whl/cpu/torch_stable.html"
     steps:
-    - name: Checkout 🛎️
-      uses: actions/checkout@v4
-      with:
-        persist-credentials: false
-    - uses: actions/setup-python@v4
-      with:
-        python-version: 3.8
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v3
+        with:
+          name: docs-html-${{ github.sha }}
+          path: docs/build/html
 
-    - name: Cache pip
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: pip-${{ hashFiles('requirements/_docs.txt') }}
-        restore-keys: pip-
-
-    - name: Install dependencies
-      run: |
-        pip --version
-        pip install . -U -q -r requirements/_docs.txt -f ${TORCH_URL}
-        # install Texlive, see https://linuxconfig.org/how-to-install-latex-on-ubuntu-20-04-focal-fossa-linux
-        sudo apt-get update --fix-missing
-        sudo apt-get install -y texlive-latex-extra dvipng texlive-pictures
-        pip list
-
-    - name: Make Documentation
-      working-directory: ./docs
-      run: make html --jobs 2
-
-    - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@v4.4.3
-      if: ${{ github.event_name == 'push' }}
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        branch: gh-pages # The branch the action should deploy to.
-        folder: docs/build/html # The folder the action should deploy.
-        clean: true # Automatically remove deleted files from the deploy branch
-        target-folder: docs # If you'd like to push the contents of the deployment folder into a specific directory
-        single-commit: true # you'd prefer to have a single commit on the deployment branch instead of full history
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.4.3
+        if: ${{ github.event_name == 'push' }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages # The branch the action should deploy to.
+          folder: docs/build/html # The folder the action should deploy.
+          clean: true # Automatically remove deleted files from the deploy branch
+          target-folder: docs # If you'd like to push the contents of the deployment folder into a specific directory
+          single-commit: true # you'd prefer to have a single commit on the deployment branch instead of full history
