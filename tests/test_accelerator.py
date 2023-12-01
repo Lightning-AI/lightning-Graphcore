@@ -74,7 +74,7 @@ def test_no_warning_strategy(tmpdir):
 
 @pytest.mark.parametrize(
     "devices",
-    [1, 4],
+    [1, 4]
 )
 def test_all_stages(tmpdir, devices):
     model = IPUModel()
