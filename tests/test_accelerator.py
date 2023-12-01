@@ -72,10 +72,7 @@ def test_no_warning_strategy(tmpdir):
     assert len(record) == 0
 
 
-@pytest.mark.parametrize(
-    "devices",
-    [1, 4]
-)
+@pytest.mark.parametrize("devices", [1, 4])
 def test_all_stages(tmpdir, devices):
     model = IPUModel()
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=True, strategy=IPUStrategy(), devices=devices)
