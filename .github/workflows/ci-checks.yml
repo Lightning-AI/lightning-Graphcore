@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: ${{ ! (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
 
 jobs:
-#  check-precommit:
-#    uses: Lightning-AI/utilities/.github/workflows/check-precommit.yml@v0.10.0
+  #  check-precommit:
+  #    uses: Lightning-AI/utilities/.github/workflows/check-precommit.yml@v0.10.0
 
   check-typing:
     uses: Lightning-AI/utilities/.github/workflows/check-typing.yml@v0.10.0

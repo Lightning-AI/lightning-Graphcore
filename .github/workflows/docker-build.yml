@@ -5,7 +5,7 @@ on:
     branches: [main, "release/*"]
   pull_request:
     branches: [main, "release/*"]
-    types: [opened, reopened, ready_for_review, synchronize]  # added `ready_for_review` since draft is skipped
+    types: [opened, reopened, ready_for_review, synchronize] # added `ready_for_review` since draft is skipped
     paths:
       - ".github/workflows/docker-build.yml"
       - "dockers/**"
@@ -14,7 +14,7 @@ on:
       - "!*.md"
       - "!**/*.md"
   schedule:
-    - cron: "0 0 1/7 * *"  # every seven days at midnight
+    - cron: "0 0 1/7 * *" # every seven days at midnight
   release:
     types: [published]
 
@@ -26,7 +26,6 @@ env:
   PUSH_DOCKERHUB: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
 jobs:
-
   build-ci:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
