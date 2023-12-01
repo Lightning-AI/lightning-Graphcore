@@ -12,7 +12,8 @@ jobs:
       requirements-file: "requirements/_docs.txt"
 
   # https://github.com/marketplace/actions/deploy-to-github-pages
-  build-docs-deploy:
+  docs-deploy:
+    needs: build-docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
