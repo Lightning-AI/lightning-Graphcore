@@ -17,7 +17,7 @@ jobs:
   check-typing:
     uses: Lightning-AI/utilities/.github/workflows/check-typing.yml@v0.10.1
     with:
-      actions-ref: v0.10.0
+      actions-ref: v0.10.1
       extra-typing: typing
 
   check-schema:
@@ -28,7 +28,7 @@ jobs:
   check-package:
     uses: Lightning-AI/utilities/.github/workflows/check-package.yml@v0.10.1
     with:
-      actions-ref: v0.10.0
+      actions-ref: v0.10.1
       import-name: "lightning_graphcore"
       artifact-name: dist-packages-${{ github.sha }}
       install-extras: "[pytorch-lightning]"
