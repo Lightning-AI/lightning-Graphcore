@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-docs:
-    uses: Lightning-AI/utilities/.github/workflows/check-docs.yml@v0.10.0
+    uses: Lightning-AI/utilities/.github/workflows/check-docs.yml@v0.10.1
     with:
       requirements-file: "requirements/_docs.txt"
 
