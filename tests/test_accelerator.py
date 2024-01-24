@@ -81,7 +81,7 @@ def test_all_stages(tmpdir, devices):
     trainer.predict(model)
 
 
-@pytest.mark.parametrize("devices",[1, 4])
+@pytest.mark.parametrize("devices", [1, 4])
 def test_inference_only(tmpdir, devices):
     model = IPUModel()
 
