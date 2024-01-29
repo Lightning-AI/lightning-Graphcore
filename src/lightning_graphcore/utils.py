@@ -20,15 +20,13 @@ from torch import Tensor
 if package_available("lightning"):
     from lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
     from lightning.pytorch import LightningModule
-    from lightning.pytorch.overrides.base import _LightningPrecisionModuleWrapperBase
 elif package_available("pytorch_lightning"):
     from lightning_fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
     from pytorch_lightning import LightningModule
-    from pytorch_lightning.overrides.base import _LightningPrecisionModuleWrapperBase
 
 
 class _LightningModuleWrapperBase(_DeviceDtypeModuleMixin, torch.nn.Module):
-    def __init__(self, forward_module: Union[LightningModule, _LightningPrecisionModuleWrapperBase]) -> None:
+    def __init__(self, forward_module: LightningModule) -> None:
         """Wrap the user's LightningModule and redirect the forward call to the appropriate `*_step()` methods.
 
         Inheriting classes may also modify the inputs or outputs of forward.
