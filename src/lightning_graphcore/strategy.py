@@ -228,9 +228,7 @@ class IPUStrategy(ParallelStrategy):
             # the user is returning the `poptorch.DataLoader` directly, don't change anything.
             return dataloader
 
-        dl_args, dl_kwargs = _get_dataloader_init_args_and_kwargs(
-            dataloader, sampler, mode
-        )
+        dl_args, dl_kwargs = _get_dataloader_init_args_and_kwargs(dataloader, sampler, mode)
         opts = self.training_opts if mode == RunningStage.TRAINING else self.inference_opts
         return _reinstantiate_wrapped_cls(dataloader, opts, *dl_args, explicit_cls=poptorch.DataLoader, **dl_kwargs)
 
